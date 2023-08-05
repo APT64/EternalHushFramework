@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+
+<Module name='EtHu'>
+	<Command name='echo' provider='echo.py' type='script'>
+		<Argument name='text' type='string'>
+			<Description>Text to echo</Description>
+		</Argument>
+	</Command>
+	<Command name='exec' provider='exec.py' type='script'>
+		<Argument name='cmd' type='string'>
+			<Description>Command to exec</Description>
+		</Argument>
+	</Command>
+	<Command name='banner' provider='banner.py' type='script'>
+	</Command>
+	<Command name='test' provider='test.py' type='script'>
+	</Command>
+</Module>
