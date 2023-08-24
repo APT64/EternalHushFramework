@@ -16,11 +16,26 @@ The EternalHush Framework also features an intuitive and user-friendly interface
 
 <img src="https://i.ibb.co/rkjtMWm/image.png">
 
+I will continue this project until I get tired of updating it. This project is also being created as a universal platform for my next personal cybersecurity experiments for Windows. It is very important for me to get feedback, so please actively write what you want to add or improve in this project.
+
+The project is now in very early stages of development and is posted so that progress can be tracked.
+
 ## Features
 - API for Python plugins
 - Easy integration of external modules
 - Intuitive GUI
 - Automatic build script
+
+## Building
+```console
+$ git clone https://github.com/APT64/EternalHushFramework.git
+$ cd EternalHushFramework
+$ python compile.py -b
+```
+This script will automatically download maven and cmake for building and build the project in the output directory ```build```
+```console
+$ cd build && java -jar EternalHushFramework-1.0-SNAPSHOT.jar
+```
 
 ## Documentation
 [Project wiki](https://github.com/APT64/EternalHushFramework/wiki)
@@ -29,4 +44,5 @@ The EternalHush Framework also features an intuitive and user-friendly interface
 - [APT64](https://github.com/APT64)
 
 ## License
+EternalHush is distributed under the MIT License.
 CPython is distributed under the PSF License.
