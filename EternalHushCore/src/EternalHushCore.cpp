@@ -4,10 +4,12 @@
 #include <Python.h>
 #include <Handlers.h>
 #include <InternalModule.h>
+#include <structs.h>
+#include <globalvars.h>
+#include <random>
 
-#define MAX_PACKET 4096
 
-EXPORT VOID FUNC StartListener() {
+EXPORT VOID StartListener() {
     
 }
 
@@ -56,30 +58,29 @@ BOOL WINAPI DllMain(
     DWORD fdwReason,
     LPVOID lpvReserved)
 {
-    // Perform actions based on the reason for calling.
+    MODULE_CONTEXT ctx;
+
     switch (fdwReason)
     {
+
     case DLL_PROCESS_ATTACH:
         init();
         break;
 
     case DLL_THREAD_ATTACH:
-        // Do thread-specific initialization.
         break;
 
     case DLL_THREAD_DETACH:
-        // Do thread-specific cleanup.
         break;
 
     case DLL_PROCESS_DETACH:
 
         if (lpvReserved != nullptr)
         {
-            break; // do not do cleanup if process termination scenario
+            break;
         }
 
-        // Perform any necessary cleanup.
         break;
     }
-    return TRUE;  // Successful DLL_PROCESS_ATTACH.
+    return TRUE;
 }

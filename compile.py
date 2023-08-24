@@ -32,12 +32,16 @@ def main():
     parser.add_argument("-f", "--force_clean", action="store_true", help="remove all build files")
     parser.add_argument("--build_core", action="store_true", help="build core")
     parser.add_argument("--build_gui", action="store_true", help="build gui")
+    parser.add_argument("--build_modules", action="store_true", help="build modules")
     args = parser.parse_args()
 
     just_fix_windows_console()
     if args.build:
         download_tools()
-        build()
+        build()    
+    if args.build_modules:
+        download_tools()
+        build_modules()
     elif args.clean:
         download_tools()
         clean()
@@ -66,6 +70,23 @@ def build_core():
     
     print_good('Copying core module')
     os.system("COPY EternalHushCore\\build\\Release\\EternalHushCore.dll build\\ /Y")
+
+def build_modules():
+    print_good('Building additional modules')
+    for directory in os.listdir("modules"):
+        f = os.path.join("modules", directory)
+        desc_file = os.path.join(f, "module.xml")
+        build_files = os.path.join(f, "bin_files")
+        bin_out = os.path.join(build_files, "bin\\Release")
+        script_files = os.path.join(f, "scripts")
+        
+        
+        os.system(CMAKE_BIN+"\\cmake.exe -S "+ build_files +" -B" + build_files + "\\output")
+        os.system(CMAKE_BIN+"\\cmake.exe --build "+ build_files +"\\output --config Release")
+        os.system("XCOPY /e /i /Y "+ bin_out +" build\\modules\\"+directory+"\\files")
+        os.system("XCOPY /e /i /Y "+ script_files +" build\\modules\\"+directory+"\\scripts")
+        os.system("COPY "+ desc_file +" build\\modules\\"+directory+"\\ /Y")
+        
 
 def build_gui():
     print_good('Compiling EternalHush project')

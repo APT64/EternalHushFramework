@@ -78,6 +78,7 @@ _deps
 
 # CMake
 cmake-build-*/
+output/
 
 # Mongo Explorer plugin
 .idea/**/mongoSettings.xml

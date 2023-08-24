@@ -14,5 +14,16 @@
 	<Command name='banner' provider='banner.py' type='script'>
 	</Command>
 	<Command name='test' provider='test.py' type='script'>
+	</Command>	
+	<Command name='clsp_connect' provider='ClSp_connect.py' type='script'>
+		<Argument name='host' type='string'>
+			<Description>Implant listening host</Description>
+		</Argument>
+		<Argument name='port' type='string'>
+			<Description>Implant listening port</Description>
+		</Argument>
+		<Argument name='key_path' type='string'>
+			<Description>Private key file</Description>
+		</Argument>
 	</Command>
 </Module>

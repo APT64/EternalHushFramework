@@ -49,15 +49,26 @@ PyObject* option(PyObject* self, PyObject* args) {
 PyObject* PyInit_ctxobj() {
     PyObject* ctxObj_module = PyModule_Create(&ctxobj_moduleDef);
 
-    PyObject* ctxObj_dict = PyModule_GetDict(ctxObj_module);
-    PyDict_SetItemString(ctxObj_dict, "ECHO_DEFAULT", Py_BuildValue("i", 0));
-    PyDict_SetItemString(ctxObj_dict, "ECHO_GOOD", Py_BuildValue("i", 1));
-    PyDict_SetItemString(ctxObj_dict, "ECHO_ERROR", Py_BuildValue("i", 2));
-    PyDict_SetItemString(ctxObj_dict, "ECHO_WARNING", Py_BuildValue("i", 3));
-    PyDict_SetItemString(ctxObj_dict, "OPTION_YES", Py_BuildValue("i", 1));
-    PyDict_SetItemString(ctxObj_dict, "OPTION_NO", Py_BuildValue("i", 0));
-    PyDict_SetItemString(ctxObj_dict, "OPTION_CANCEL", Py_BuildValue("i", -1));
-    PyDict_SetItemString(ctxObj_dict, "RUN_SILENT", Py_BuildValue("i", 1));
-    PyDict_SetItemString(ctxObj_dict, "RUN_NORMAL", Py_BuildValue("i", 0));
+    PyModule_AddIntConstant(ctxObj_module, "ECHO_DEFAULT", 0);
+    PyModule_AddIntConstant(ctxObj_module, "ECHO_GOOD", 1);
+    PyModule_AddIntConstant(ctxObj_module, "ECHO_ERROR", 2);
+    PyModule_AddIntConstant(ctxObj_module, "ECHO_WARNING", 3);
+    
+    PyModule_AddIntConstant(ctxObj_module, "OPTION_YES", 1);
+    PyModule_AddIntConstant(ctxObj_module, "OPTION_NO", 0);
+    PyModule_AddIntConstant(ctxObj_module, "OPTION_CANCEL", -1);
+    
+    PyModule_AddIntConstant(ctxObj_module, "RUN_SILENT", 1);
+    PyModule_AddIntConstant(ctxObj_module, "RUN_NORMAL", 0);
+
+    PyModule_AddIntConstant(ctxObj_module, "TCP_CONNECTION", 2);
+    PyModule_AddIntConstant(ctxObj_module, "HTTP_CONNECTION", 4);
+
+    PyModule_AddIntConstant(ctxObj_module, "LONG", 4);
+    PyModule_AddIntConstant(ctxObj_module, "SHORT", 2);
+    PyModule_AddIntConstant(ctxObj_module, "CHAR", 1);
+
+    PyModule_AddIntConstant(ctxObj_module, "PRIVATE_KEY", 0);
+    PyModule_AddIntConstant(ctxObj_module, "PUBLIC_KEY", 1);
     return ctxObj_module;
 }

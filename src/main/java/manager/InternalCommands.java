@@ -33,6 +33,10 @@ public class InternalCommands {
                 currentConsole.printDefault("help\nclear\npython\nquit\n");
                 return;
             case "python":
+                if (args.length == 0){
+                    currentConsole.printError("No arguments provided!\n");
+                    return;
+                }
                 String module = args[0];
                 args = ArrayUtils.remove(args, 0);
                 CoreConnector.Export.RunScript(module, args.length, args);

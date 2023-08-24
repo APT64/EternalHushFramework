@@ -68,6 +68,7 @@ public class OperationConsole extends JPanel implements Runnable {
         inputField.setForeground(Color.WHITE);
 
         inputField.setCaretColor(Color.WHITE);
+        inputField.setFocusTraversalKeysEnabled(false);
 
         outputArea.setFont(new Font(SettingsLoader.getKeyValue("console_font"), Font.PLAIN, Integer.valueOf(SettingsLoader.getKeyValue("console_font_size"))));
         inputField.setFont(new Font(SettingsLoader.getKeyValue("console_input_font"), Font.PLAIN, Integer.valueOf(SettingsLoader.getKeyValue("console_input_font_size"))));

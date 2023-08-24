@@ -14,7 +14,7 @@ set(PYTHON_LIBRARY ${CMAKE_CURRENT_SOURCE_DIR}/libs/python39.lib)
 set(WINSOCK_LIBRARY ws2_32)
 
 file(GLOB SOURCE_FILE 
-src/*.cpp
+src/*.c*
 )
 
 add_library(EternalHushCore SHARED
