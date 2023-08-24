@@ -133,6 +133,7 @@ def build():
     os.system("XCOPY /e /Y prebuilt\\ build\\")
     
     build_core()
+    build_modules()
 
 if __name__=="__main__":
     main()
