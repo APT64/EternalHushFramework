@@ -5,6 +5,7 @@
   <p align="center">
      <img src="https://img.shields.io/github/stars/APT64/EternalHushFramework?label=Stars" alt="Stars">
      <img src="https://img.shields.io/badge/1.0.0.0-red?label=Version" alt="Version">
+     <img src="https://img.shields.io/badge/windows-orange?label=Platfom" alt="Platfom">
      <img src="https://img.shields.io/badge/MIT-green?label=License" alt="License">
   </p>
 </div>
