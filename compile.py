@@ -6,13 +6,12 @@ CMAKE_VERSION = "3.27.1"
 CMAKE_DIR = "cmake\\cmake-" + CMAKE_VERSION + "-windows-x86_64"
 CMAKE_BIN = CMAKE_DIR + "\\bin"
 
-BUILD_DIR = "final"
-
 import os
 from colorama import *
 import time
 import dload
 import argparse
+import shutil
 
 def print_good(text):
     os.system("cls")
@@ -77,15 +76,26 @@ def build_modules():
         f = os.path.join("modules", directory)
         desc_file = os.path.join(f, "module.xml")
         build_files = os.path.join(f, "bin_files")
-        bin_out = os.path.join(build_files, "bin\\Release")
+        bin_out32 = os.path.join(build_files, "bin32\\Release")
+        bin_out64 = os.path.join(build_files, "bin64\\Release")
         script_files = os.path.join(f, "scripts")
         
         
-        os.system(CMAKE_BIN+"\\cmake.exe -S "+ build_files +" -B" + build_files + "\\output")
-        os.system(CMAKE_BIN+"\\cmake.exe --build "+ build_files +"\\output --config Release")
-        os.system("XCOPY /e /i /Y "+ bin_out +" build\\modules\\"+directory+"\\files")
+        os.system(CMAKE_BIN+"\\cmake.exe -DCMAKE_RUNTIME_OUTPUT_DIRECTORY=../../bin32 -A Win32 -S "+ build_files +" -B" + build_files + "\\output32")
+        os.system(CMAKE_BIN+"\\cmake.exe -DCMAKE_RUNTIME_OUTPUT_DIRECTORY=../../bin64 -A x64 -S "+ build_files +" -B" + build_files + "\\output64")
+        os.system(CMAKE_BIN+"\\cmake.exe --build "+ build_files +"\\output32 --config Release")
+        os.system(CMAKE_BIN+"\\cmake.exe --build "+ build_files +"\\output64 --config Release")
+       
         os.system("XCOPY /e /i /Y "+ script_files +" build\\modules\\"+directory+"\\scripts")
         os.system("COPY "+ desc_file +" build\\modules\\"+directory+"\\ /Y")
+        os.system("MKDIR build\\modules\\"+directory+"\\files")
+        for root, dirs, files in os.walk(bin_out32):
+            for file in files:
+                shutil.copyfile(os.path.join(root, file), "build\\modules\\"+directory+"\\files\\"+"X32_"+os.path.basename(file))
+                
+        for root, dirs, files in os.walk(bin_out64):
+            for file in files:
+                shutil.copyfile(os.path.join(root, file), "build\\modules\\"+directory+"\\files\\"+"X64_"+os.path.basename(file))    
         
 
 def build_gui():

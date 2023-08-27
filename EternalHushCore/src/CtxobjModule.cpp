@@ -46,6 +46,13 @@ PyObject* option(PyObject* self, PyObject* args) {
     return result;
 }
 
+PyObject* print_critical(PyObject* self, PyObject* args) {
+    PyObject* command = PyObject_GetAttrString(init_py4j(), "print_critical");
+    PyObject* result = PyObject_CallObject(command, args);
+
+    Py_RETURN_NONE;
+}
+
 PyObject* PyInit_ctxobj() {
     PyObject* ctxObj_module = PyModule_Create(&ctxobj_moduleDef);
 
@@ -64,6 +71,7 @@ PyObject* PyInit_ctxobj() {
     PyModule_AddIntConstant(ctxObj_module, "TCP_CONNECTION", 2);
     PyModule_AddIntConstant(ctxObj_module, "HTTP_CONNECTION", 4);
 
+    PyModule_AddIntConstant(ctxObj_module, "LONGLONG", 8);
     PyModule_AddIntConstant(ctxObj_module, "LONG", 4);
     PyModule_AddIntConstant(ctxObj_module, "SHORT", 2);
     PyModule_AddIntConstant(ctxObj_module, "CHAR", 1);

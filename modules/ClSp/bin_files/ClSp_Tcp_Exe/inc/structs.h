@@ -1,5 +1,5 @@
 #include <Windows.h>
-
+#pragma pack(1)
 typedef struct _UNICODE_STRING {
 	USHORT Length;
 	USHORT MaximumLength;
@@ -59,3 +59,11 @@ typedef struct _HELLORESPONSE {
 	char implant_info[256];
 	char next_iv[16];
 } HELLORESPONSE, * PHELLORESPONSE;
+
+typedef struct _CONFIG {
+	long long magic_value = 0x99c72f6099c72f60;
+	short port = 0x0;
+	long id = 0x0;
+} CONFIG, * PCONFIG;
+
+#pragma pack(0)

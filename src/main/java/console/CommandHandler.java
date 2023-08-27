@@ -12,7 +12,7 @@ public class CommandHandler {
 
         if (getPrefix(line) == '!'){
                 ExternalModules externalModules = new ExternalModules(console);
-                String split_line[] = line.split(" (?=(?:[^\"]*\"[^\"]*\")*[^\"]*$)");
+                String split_line[] = line.split("\\s+(?=(?:[^\"]*\"[^\"]*\")*[^\"]*$)");
                 for (int i = 0; i < split_line.length; i++){
                     String str = split_line[i];
                     if (str.charAt(0) == '"' && str.charAt(str.length()-1) == '"'){
@@ -23,7 +23,7 @@ public class CommandHandler {
         }
 
         else if (getPrefix(line) == '.'){
-            String split_line[] = line.split(" (?=(?:[^\"]*\"[^\"]*\")*[^\"]*$)");
+            String split_line[] = line.split("\\s+(?=(?:[^\"]*\"[^\"]*\")*[^\"]*$)");
             for (int i = 0; i < split_line.length; i++){
                 String str = split_line[i];
                 if (str.charAt(0) == '"' && str.charAt(str.length()-1) == '"'){
