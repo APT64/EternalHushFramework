@@ -4,9 +4,16 @@ import console.CommandHandler;
 import console.ConsoleManager;
 import console.OperationConsole;
 
+import java.awt.*;
 import java.util.Scanner;
 
 public class UserInterface {
+    public void print_critical(String str) {
+        OperationConsole consoleInstance = ConsoleManager.getInstance("localhost");
+        String msgText = str;
+        consoleInstance.print(msgText, Color.RED);
+    }
+
     public void echo(String str, int type) {
         OperationConsole consoleInstance = ConsoleManager.getInstance("localhost");
 

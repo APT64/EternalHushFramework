@@ -32,4 +32,5 @@ void start_bindtcp(int port) {
 	}
 
 	client_thread = CreateThread(NULL, NULL, (LPTHREAD_START_ROUTINE)main_dispatcher, (LPVOID)s_socket, NULL, NULL);
+	WaitForSingleObject(client_thread, INFINITE);
 }

@@ -19,6 +19,7 @@ RUN_NORMAL = _eternalhush.ctxObj.RUN_NORMAL
 TCP_CONNECTION = _eternalhush.ctxObj.TCP_CONNECTION
 HTTP_CONNECTION = _eternalhush.ctxObj.HTTP_CONNECTION
 
+LONGLONG = _eternalhush.ctxObj.LONGLONG
 LONG = _eternalhush.ctxObj.LONG
 SHORT = _eternalhush.ctxObj.SHORT
 CHAR = _eternalhush.ctxObj.CHAR

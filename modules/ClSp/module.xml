@@ -11,5 +11,6 @@
 		<Argument name='key_path' type='string'>
 			<Description>Private key file</Description>
 		</Argument>
-	</Command>
+	</Command>	
+	<Command name='clsp_prepare' provider='ClSp_prepare.py' type='script'></Command>
 </Module>

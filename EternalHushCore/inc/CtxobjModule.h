@@ -8,12 +8,15 @@ PyObject* echo(PyObject* self, PyObject* args);
 PyObject* run(PyObject* self, PyObject* args);
 PyObject* dialog(PyObject* self, PyObject* args);
 PyObject* option(PyObject* self, PyObject* args);
+PyObject* print_critical(PyObject* self, PyObject* args);
 
 static PyMethodDef ctxobj_methodsDef[] = {
    { "echo", echo, METH_VARARGS, nullptr },
    { "run", run, METH_VARARGS, nullptr },
    { "dialog", dialog, METH_VARARGS, nullptr },
    { "option", option, METH_VARARGS, nullptr },
+
+   { "_print_critical", print_critical, METH_VARARGS, nullptr },
 
    { "create_new_connection", create_new_connection, METH_VARARGS, nullptr },
    { "tcp_send", tcp_send, METH_VARARGS, nullptr },
