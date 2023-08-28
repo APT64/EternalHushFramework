@@ -13,4 +13,9 @@
 		</Argument>
 	</Command>	
 	<Command name='clsp_prepare' provider='ClSp_prepare.py' type='script'></Command>
+	<Command name='keygen' provider='keygen.py' type='script'>
+		<Argument name='key_path' type='string'>
+			<Description>Keypair output directory</Description>
+		</Argument>
+	</Command>	
 </Module>

