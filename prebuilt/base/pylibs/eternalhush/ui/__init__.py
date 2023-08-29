@@ -1,13 +1,19 @@
 import _eternalhush
 
-def Dialog(_str):
+def Dialog(_str, type=_eternalhush.ctxObj.STRING, default=None):
     """Requests arbitrary user input in the EternalHush console"""
-    return _eternalhush.ctxObj.dialog(_str)
+    if isinstance(default, int):
+        default = str(default)
+        
+    resp = _eternalhush.ctxObj.dialog(_str, type, default)
+    if type == _eternalhush.ctxObj.INT:
+        resp = int(resp)
+    return resp
 
 
-def Option(_str):
+def Option(_str, default=_eternalhush.ctxObj.OPTION_YES):
     """Requests confirmation of the operation in the EternalHush console"""
-    return _eternalhush.ctxObj.option(_str)
+    return _eternalhush.ctxObj.option(_str, default)
 
 
 def Run(_str, _flag):

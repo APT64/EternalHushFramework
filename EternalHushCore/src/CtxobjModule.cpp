@@ -78,5 +78,8 @@ PyObject* PyInit_ctxobj() {
 
     PyModule_AddIntConstant(ctxObj_module, "PRIVATE_KEY", 0);
     PyModule_AddIntConstant(ctxObj_module, "PUBLIC_KEY", 1);
+
+    PyModule_AddStringConstant(ctxObj_module, "INT", "INT");
+    PyModule_AddStringConstant(ctxObj_module, "STRING", "STR");
     return ctxObj_module;
 }
