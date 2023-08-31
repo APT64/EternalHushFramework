@@ -4,6 +4,8 @@
 #include <locale>
 #include <codecvt>
 
+PyObject* py4j_gw = 0;
+
 void ErrCheck(PyObject *object) {
 	if (object == nullptr) {
 		PyErr_Print();
@@ -44,7 +46,6 @@ void AddSearchPath(std::wstring path) {
 	PyRun_SimpleStringFlags(line, NULL);
 }
 
-
 wchar_t* cstowc(const char* c)
 {
 	const size_t cSize = strlen(c) + 1;
@@ -54,8 +55,27 @@ wchar_t* cstowc(const char* c)
 	return wc;
 }
 
-void ExecuteScript(char* script_name, int argc, char* argv[]) {
+PyObject* init_py4j() {
+	PyObject* py4j_module = PyImport_ImportModule("py4j.java_gateway");
+	PyObject* py4j_javagateway = PyObject_GetAttrString(py4j_module, "JavaGateway");
+	PyObject* py4j_gatewayclient = PyObject_GetAttrString(py4j_module, "GatewayClient");
+
+	PyObject* empty_args = PyTuple_New(0);
+	PyObject* kwargs = Py_BuildValue("{s:i}", "port", 49406);
+	PyObject* gw_client = PyObject_Call(py4j_gatewayclient, empty_args, kwargs);
+
+	PyObject* jgateway = PyObject_CallOneArg(py4j_javagateway, gw_client);
+
+	return jgateway;
+}
+
+void ExecuteScript(char* script_name, int console_id, int argc, char* argv[]) {
 	PrepareSysModule();
+
+	if (!py4j_gw)
+	{
+		py4j_gw = init_py4j();
+	}
 
 	FILE* pScript = fopen(script_name, "r");
 	wchar_t** wargv = new wchar_t*[argc];
@@ -67,6 +87,16 @@ void ExecuteScript(char* script_name, int argc, char* argv[]) {
 	if (pScript)
 	{
 		PySys_SetArgv(argc, wargv);
+		char line[MAX_PATH * 2];
+		sprintf(line, "import _eternalhush\n_eternalhush.ctxObj.console_id = %d", console_id);
+		PyRun_SimpleStringFlags(line, NULL);		
+
+		PyObject* ethu = PyImport_GetModule(PyUnicode_FromString("_eternalhush"));
+		PyObject* ctxobj = PyObject_GetAttrString(ethu, "ctxObj");
+		PyObject_SetAttrString(ctxobj, "py4j_gw", py4j_gw);
+
 		PyRun_SimpleFile(pScript, script_name);
+		
+		PyObject_CallNoArgs(PyObject_GetAttrString(py4j_gw, "close"));
 	}
 }

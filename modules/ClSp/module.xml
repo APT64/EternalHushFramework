@@ -2,6 +2,7 @@
 
 <Module name='ClSp'>
 	<Command name='clsp_connect' provider='ClSp_connect.py' type='script'>
+		<Description>Opens and exports a direct connection to ClingySpider Implant</Description>
 		<Argument name='host' type='string'>
 			<Description>Implant listening host</Description>
 		</Argument>
@@ -12,8 +13,11 @@
 			<Description>Private key file</Description>
 		</Argument>
 	</Command>	
-	<Command name='clsp_prepare' provider='ClSp_prepare.py' type='script'></Command>
+	<Command name='clsp_prepare' provider='ClSp_prepare.py' type='script'>
+		<Description>Generates a ready-to-use ClingySpider implant</Description>
+	</Command>
 	<Command name='keygen' provider='keygen.py' type='script'>
+		<Description>Generates and saves rsa keypair</Description>
 		<Argument name='key_path' type='string'>
 			<Description>Keypair output directory</Description>
 		</Argument>

@@ -9,6 +9,7 @@ public:
 	void end();
 	SOCKET sock;
 	int id;
+	char* target_addr;
 private:
 	BOOL terminate = false;
 	sockaddr_in client;

@@ -2,52 +2,67 @@
 #include <Python.h>
 #include <CtxobjModule.h>
 
-PyObject* init_py4j() {
-    PyObject* py4j_module = PyImport_ImportModule("py4j.java_gateway");
-    PyObject* py4j_javagateway = PyObject_GetAttrString(py4j_module, "JavaGateway");
-    PyObject* py4j_gatewayparams = PyObject_GetAttrString(py4j_module, "GatewayParameters");
-
-    PyObject* empty_args = PyTuple_New(0);
-    PyObject* kwargs = Py_BuildValue("{s:i}", "port", 49406);
-    PyObject* gw_params = PyObject_Call(py4j_gatewayparams, empty_args, kwargs);
-
-    kwargs = Py_BuildValue("{s:O}", "gateway_parameters", gw_params);
-    PyObject* jgateway = PyObject_Call(py4j_javagateway, empty_args, kwargs);
-
-    PyObject* entry_point = PyObject_GetAttrString(jgateway, "entry_point");
-    return entry_point;
-}
-
 PyObject* echo(PyObject* self, PyObject* args) {
-    PyObject* command = PyObject_GetAttrString(init_py4j(), "echo");
+    PyObject* ethu = PyImport_GetModule(PyUnicode_FromString("_eternalhush"));
+    PyObject* ctxobj = PyObject_GetAttrString(ethu, "ctxObj");
+    PyObject* jgateway = PyObject_GetAttrString(ctxobj, "py4j_gw");
+    PyObject* entry_point = PyObject_GetAttrString(jgateway, "entry_point");
+    PyObject* command = PyObject_GetAttrString(entry_point, "echo");
     PyObject* result = PyObject_CallObject(command, args);
 
     Py_RETURN_NONE;
 }
 
 PyObject* run(PyObject* self, PyObject* args) {
-    PyObject* command = PyObject_GetAttrString(init_py4j(), "run");
+    PyObject* ethu = PyImport_GetModule(PyUnicode_FromString("_eternalhush"));
+    PyObject* ctxobj = PyObject_GetAttrString(ethu, "ctxObj");
+    PyObject* jgateway = PyObject_GetAttrString(ctxobj, "py4j_gw");
+    PyObject* entry_point = PyObject_GetAttrString(jgateway, "entry_point");
+    PyObject* command = PyObject_GetAttrString(entry_point, "run");
     PyObject* result = PyObject_CallObject(command, args);
 
     Py_RETURN_NONE;
 }
 
 PyObject* dialog(PyObject* self, PyObject* args) {
-    PyObject* command = PyObject_GetAttrString(init_py4j(), "dialog");
+    PyObject* ethu = PyImport_GetModule(PyUnicode_FromString("_eternalhush"));
+    PyObject* ctxobj = PyObject_GetAttrString(ethu, "ctxObj");
+    PyObject* jgateway = PyObject_GetAttrString(ctxobj, "py4j_gw");
+    PyObject* entry_point = PyObject_GetAttrString(jgateway, "entry_point");
+    PyObject* command = PyObject_GetAttrString(entry_point, "dialog");
     PyObject* result = PyObject_CallObject(command, args);
 
     return result;
 }
 
 PyObject* option(PyObject* self, PyObject* args) {
-    PyObject* command = PyObject_GetAttrString(init_py4j(), "option");
+    PyObject* ethu = PyImport_GetModule(PyUnicode_FromString("_eternalhush"));
+    PyObject* ctxobj = PyObject_GetAttrString(ethu, "ctxObj");
+    PyObject* jgateway = PyObject_GetAttrString(ctxobj, "py4j_gw");
+    PyObject* entry_point = PyObject_GetAttrString(jgateway, "entry_point");
+    PyObject* command = PyObject_GetAttrString(entry_point, "option");
     PyObject* result = PyObject_CallObject(command, args);
 
     return result;
 }
 
 PyObject* print_critical(PyObject* self, PyObject* args) {
-    PyObject* command = PyObject_GetAttrString(init_py4j(), "print_critical");
+    PyObject* ethu = PyImport_GetModule(PyUnicode_FromString("_eternalhush"));
+    PyObject* ctxobj = PyObject_GetAttrString(ethu, "ctxObj");
+    PyObject* jgateway = PyObject_GetAttrString(ctxobj, "py4j_gw");
+    PyObject* entry_point = PyObject_GetAttrString(jgateway, "entry_point");
+    PyObject* command = PyObject_GetAttrString(entry_point, "print_critical");
+    PyObject* result = PyObject_CallObject(command, args);
+
+    Py_RETURN_NONE;
+}
+
+PyObject* set_hostname(PyObject* self, PyObject* args) {
+    PyObject* ethu = PyImport_GetModule(PyUnicode_FromString("_eternalhush"));
+    PyObject* ctxobj = PyObject_GetAttrString(ethu, "ctxObj");
+    PyObject* jgateway = PyObject_GetAttrString(ctxobj, "py4j_gw");
+    PyObject* entry_point = PyObject_GetAttrString(jgateway, "entry_point");
+    PyObject* command = PyObject_GetAttrString(entry_point, "update_hostname");
     PyObject* result = PyObject_CallObject(command, args);
 
     Py_RETURN_NONE;
@@ -81,5 +96,6 @@ PyObject* PyInit_ctxobj() {
 
     PyModule_AddStringConstant(ctxObj_module, "INT", "INT");
     PyModule_AddStringConstant(ctxObj_module, "STRING", "STR");
+
     return ctxObj_module;
 }

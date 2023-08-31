@@ -5,6 +5,7 @@ import eternalhush.SettingsLoader;
 import events.EternalEventSource;
 import events.EternalEventListener;
 import gui.IconLoader;
+import gui.TabPanel;
 
 import javax.swing.*;
 import javax.swing.text.*;
@@ -12,6 +13,7 @@ import java.awt.*;
 import java.awt.event.*;
 import java.io.*;
 import java.util.ArrayList;
+import java.util.Map;
 import java.util.Scanner;
 
 public class OperationConsole extends JPanel implements Runnable {
@@ -36,21 +38,23 @@ public class OperationConsole extends JPanel implements Runnable {
     private ArrayList<String> commandHistory;
     private int commandHistoryIndex = 1;
 
-    private String ConsoleTarget;
+    private int ConsoleId;
+    private String ConsoleHostname;
 
     private String HandledCommand;
     private boolean isUserInput = false;
     private boolean outputEnabled = true;
 
     public OperationConsole(){
-        ConsoleTarget = new String("localhost");
+        ConsoleHostname = getLocalHostname();
+        ConsoleId = ConsoleManager.getCount();
 
         setLayout(new BorderLayout());
         iconLoader = new IconLoader();
         outputArea = new JTextPane();
         inputField = new JTextField();
         inputPanel = new JPanel();
-        commandHistory = new ArrayList<String>();
+        commandHistory = new ArrayList<>();
         handler = new CommandHandler();
         statusPanel = new StatusPanel();
 
@@ -70,8 +74,8 @@ public class OperationConsole extends JPanel implements Runnable {
         inputField.setCaretColor(Color.WHITE);
         inputField.setFocusTraversalKeysEnabled(false);
 
-        outputArea.setFont(new Font(SettingsLoader.getKeyValue("console_font"), Font.PLAIN, Integer.valueOf(SettingsLoader.getKeyValue("console_font_size"))));
-        inputField.setFont(new Font(SettingsLoader.getKeyValue("console_input_font"), Font.PLAIN, Integer.valueOf(SettingsLoader.getKeyValue("console_input_font_size"))));
+        outputArea.setFont(new Font(SettingsLoader.getKeyValue("console_font"), Font.PLAIN, Integer.parseInt(SettingsLoader.getKeyValue("console_font_size"))));
+        inputField.setFont(new Font(SettingsLoader.getKeyValue("console_input_font"), Font.PLAIN, Integer.parseInt(SettingsLoader.getKeyValue("console_input_font_size"))));
 
         inputField.setBorder(BorderFactory.createLineBorder(Color.BLACK, 5));
         outputArea.setBorder(BorderFactory.createLineBorder(Color.BLACK, 5));
@@ -93,12 +97,12 @@ public class OperationConsole extends JPanel implements Runnable {
         inputFromField = new PipedInputStream();
         try {
             outputFromField.connect(inputFromField);
-        } catch (IOException e){}
+        } catch (IOException ignored){}
 
         fieldInput = new Scanner(inputFromField);
         fieldOutput = new PrintStream(outputFromField);
 
-        HandledCommand = new String();
+        HandledCommand = "";
 
         inputField.addKeyListener(new KeyListener() {
             @Override
@@ -140,7 +144,7 @@ public class OperationConsole extends JPanel implements Runnable {
             @Override
             public void onInitCompleted() {
                 if (SettingsLoader.getKeyValue("use_autorun").equals("true")){
-                    CoreConnector.Export.RunScript("autorun.py", 0, null);
+                    CoreConnector.Export.RunScript("autorun.py", ConsoleId, 0, null);
                 }
             }
         });
@@ -184,23 +188,35 @@ public class OperationConsole extends JPanel implements Runnable {
         }
     }
 
-    public String getTarget(){
-        return ConsoleTarget;
-    }
-    public void setTarget(String target){
-        ConsoleTarget = target;
-    }
-
     public Scanner getDefaultScanner(){
         return fieldInput;
     }
 
-    public CommandHandler getDefaultHandler(){
-        return handler;
-    }
-
     public void outEnable(boolean flag){
         outputEnabled = flag;
+    }
+
+    public String getHostname()
+    {
+        return ConsoleHostname;
+    }
+    public void setHostname(String hostname)
+    {
+        ConsoleHostname = hostname;
+        TabPanel tabPanel = (TabPanel)SwingUtilities.getAncestorOfClass(TabPanel.class, this);
+        tabPanel.setTitleAt(ConsoleId, hostname+" [" + ConsoleId +"]");
+    }
+
+    public int getConsoleId(){
+        return ConsoleId;
+    }
+
+    private String getLocalHostname()
+    {
+        Map<String, String> env = System.getenv();
+        if (env.containsKey("COMPUTERNAME"))
+            return env.get("COMPUTERNAME");
+        else return env.getOrDefault("HOSTNAME", "Unknown Computer");
     }
 
     public void run() {

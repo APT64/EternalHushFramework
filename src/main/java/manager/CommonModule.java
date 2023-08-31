@@ -47,6 +47,8 @@ class Commands{
     @JacksonXmlProperty(isAttribute = true, localName = "type")
     protected String ProviderType;
 
+    @JacksonXmlProperty(localName = "Description")
+    protected String CommandDescription;
 
     @JacksonXmlElementWrapper(useWrapping = false)
     @JacksonXmlProperty(localName = "Argument")

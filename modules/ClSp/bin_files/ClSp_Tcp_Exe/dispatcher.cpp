@@ -69,8 +69,4 @@ void main_dispatcher(SOCKET client_socket) {
 			send(client_socket, (const char*)&inital_response, sizeof(HELLORESPONSE), 0);
 		}
 	}
-
-	while (true)
-	{
-	}
 }

@@ -10,11 +10,12 @@ void TcpClient::setup(int port, unsigned char* host) {
 	if (sock == INVALID_SOCKET) {
 		return;
 	}
-
+	
 	client.sin_family = AF_INET;
 	client.sin_port = htons(port);
 	client.sin_addr.s_addr = inet_addr((const char*)host);
 
+	target_addr = (char*)host;
 	connect(sock, (sockaddr*)&client, sizeof(client));
 }
 

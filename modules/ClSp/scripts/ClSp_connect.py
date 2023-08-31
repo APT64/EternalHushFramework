@@ -71,7 +71,8 @@ def main(args):
         eh.ui.Echo("Platform architecture: X86", eh.ECHO_DEFAULT)
     eh.ui.Echo("Implant platform: " + implant_info.implant_platform.hex(), eh.ECHO_DEFAULT)
     
-
+    eh.net.ExportConnection(tcp_connection)
+    eh.ui.SetHostname(args[0])
     
 if __name__=="__main__":
     main(sys.argv)

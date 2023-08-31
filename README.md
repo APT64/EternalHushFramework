@@ -14,7 +14,7 @@
 EternalHush Framework is a new open source project that is an advanced C&C framework. Designed specifically for Windows operating systems, it allows users to easily extend its functionality by developing plugins in Python. This is achieved through its own Python API.
 The EternalHush Framework also features an intuitive and user-friendly interface that simplifies the process of controlling and collecting data from infected operating systems.
 
-<img src="https://i.ibb.co/rkjtMWm/image.png">
+<img src="https://i.ibb.co/gZbBQsd/scr.png">
 
 I will continue this project until I get tired of updating it. This project is also being created as a universal platform for my next personal cybersecurity experiments for Windows. It is very important for me to get feedback, so please actively write what you want to add or improve in this project.
 

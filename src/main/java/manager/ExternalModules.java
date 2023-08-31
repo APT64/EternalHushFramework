@@ -50,7 +50,7 @@ public class ExternalModules {
 
         Native.setProtected(true);
         try {
-            CoreConnector.Export.RunScript(module, args.length, args);
+            CoreConnector.Export.RunScript(module, currentConsole.getConsoleId(), args.length, args);
         }catch (Error err){
             System.out.println(err);
         }

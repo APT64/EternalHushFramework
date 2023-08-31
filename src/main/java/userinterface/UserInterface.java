@@ -8,14 +8,15 @@ import java.awt.*;
 import java.util.Scanner;
 
 public class UserInterface {
+    boolean lock = false;
     public void print_critical(String str) {
-        OperationConsole consoleInstance = ConsoleManager.getInstance("localhost");
+        OperationConsole consoleInstance = ConsoleManager.getInstance(0); //fix
         String msgText = str;
         consoleInstance.print(msgText, Color.RED);
     }
 
-    public void echo(String str, int type) {
-        OperationConsole consoleInstance = ConsoleManager.getInstance("localhost");
+    public void echo(int consoleId, String str, int type) {
+        OperationConsole consoleInstance = ConsoleManager.getInstance(consoleId);
 
         String msgText = str;
         int msgType = type;
@@ -34,9 +35,8 @@ public class UserInterface {
         }
     }
 
-    public String dialog(String str, String input_type, String default_text) {
-
-        OperationConsole consoleInstance = ConsoleManager.getInstance("localhost");
+    public String dialog(int consoleId, String str, String input_type, String default_text) {
+        OperationConsole consoleInstance = ConsoleManager.getInstance(consoleId);
         String msgText = str;
         String defaultText = "";
         String inputOption;
@@ -69,13 +69,14 @@ public class UserInterface {
         return inputOption;
     }
 
-    public int option(String str, int default_type) {
+    public int option(int consoleId, String str, int default_type) {
         int option;
 
         String inputOption = "";
         String default_type_text;
         String defaultText;
-        OperationConsole consoleInstance = ConsoleManager.getInstance("localhost");
+
+        OperationConsole consoleInstance = ConsoleManager.getInstance(consoleId);
         String msgText = str;
 
         if (default_type == MessagesConstants.OPTION_NO){
@@ -119,9 +120,9 @@ public class UserInterface {
         return option;
     }
 
-    public void run(String str, int flag){
+    public void run(int consoleId, String str, int flag){
 
-        OperationConsole consoleInstance = ConsoleManager.getInstance("localhost");
+        OperationConsole consoleInstance = ConsoleManager.getInstance(consoleId);
 
         String Command = str;
         int Option = flag;
@@ -134,4 +135,8 @@ public class UserInterface {
         consoleInstance.outEnable(true);
     }
 
+    public void update_hostname(int consoleId, String hostname){
+        OperationConsole operationConsole = ConsoleManager.getInstance(consoleId);
+        operationConsole.setHostname(hostname);
+    }
 }
