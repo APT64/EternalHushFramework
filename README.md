@@ -36,6 +36,7 @@ This script will automatically download maven and cmake for building and build t
 ```console
 $ cd build && java -jar EternalHushFramework-1.0-SNAPSHOT.jar
 ```
+Read more in [wiki](https://github.com/APT64/EternalHushFramework/wiki)
 
 ## Documentation
 [Project wiki](https://github.com/APT64/EternalHushFramework/wiki)

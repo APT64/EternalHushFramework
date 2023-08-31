@@ -36,7 +36,6 @@ public class UserInterface {
     }
 
     public String dialog(int consoleId, String str, String input_type, String default_text) {
-
         OperationConsole consoleInstance = ConsoleManager.getInstance(consoleId);
         String msgText = str;
         String defaultText = "";
@@ -76,6 +75,7 @@ public class UserInterface {
         String inputOption = "";
         String default_type_text;
         String defaultText;
+
         OperationConsole consoleInstance = ConsoleManager.getInstance(consoleId);
         String msgText = str;
 
