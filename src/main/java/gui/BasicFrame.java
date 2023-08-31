@@ -42,17 +42,24 @@ public class BasicFrame extends JFrame {
             if (style.equals("Graphite")) {
                 UIManager.setLookAndFeel(new GraphiteLookAndFeel());
             }
-            if (style.equals("Mint")) {
+            else if (style.equals("Mint")) {
                 UIManager.setLookAndFeel(new MintLookAndFeel());
             }
-            if (style.equals("Aluminium")) {
+            else if (style.equals("Aluminium")) {
                 UIManager.setLookAndFeel(new AluminiumLookAndFeel());
             }
-            if (style.equals("HiFi")) {
+            else if (style.equals("HiFi")) {
                 UIManager.setLookAndFeel(new HiFiLookAndFeel());
             }
-            if (style.equals("Noire")) {
+            else if (style.equals("Noire")) {
                 UIManager.setLookAndFeel(new NoireLookAndFeel());
+            }
+            else {
+                for (UIManager.LookAndFeelInfo info : UIManager.getInstalledLookAndFeels()) {
+                    if (style.equals(info.getName())) {
+                        UIManager.setLookAndFeel(info.getClassName());
+                    }
+                }
             }
 
         } catch (Exception e) {

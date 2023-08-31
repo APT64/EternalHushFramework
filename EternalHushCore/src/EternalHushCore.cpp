@@ -8,11 +8,6 @@
 #include <globalvars.h>
 #include <random>
 
-
-EXPORT VOID StartListener() {
-    
-}
-
 void SetPythonPath(std::wstring path) {
 
     std::wstring dlls_siffix = L"\\CoreLibs\\DLLs";
@@ -58,7 +53,6 @@ BOOL WINAPI DllMain(
     DWORD fdwReason,
     LPVOID lpvReserved)
 {
-    MODULE_CONTEXT ctx;
 
     switch (fdwReason)
     {

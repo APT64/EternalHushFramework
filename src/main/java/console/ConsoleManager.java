@@ -9,12 +9,15 @@ public abstract class ConsoleManager {
         consoleInstances.add(instance);
     }
 
-    public static OperationConsole getInstance(String target){
-        for(OperationConsole console : consoleInstances){
-            if (console.getTarget().equals(target)){
-               return console;
-            }
+    public static OperationConsole getInstance(int id){
+        try {
+            return consoleInstances.get(id);
+        }catch (Exception e){
+            return null;
         }
-        return null;
+    }
+
+    public static int getCount(){
+        return consoleInstances.size();
     }
 }

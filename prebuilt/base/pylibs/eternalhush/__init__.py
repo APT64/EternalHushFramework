@@ -1,4 +1,5 @@
 import _eternalhush
+import os
 import eternalhush.ui
 import eternalhush.net
 import eternalhush.data
@@ -6,6 +7,8 @@ import eternalhush.exception
 import eternalhush.crypto
 
 
+STRING = _eternalhush.ctxObj.STRING
+INT = _eternalhush.ctxObj.INT
 ECHO_DEFAULT = _eternalhush.ctxObj.ECHO_DEFAULT
 ECHO_GOOD = _eternalhush.ctxObj.ECHO_GOOD
 ECHO_ERROR = _eternalhush.ctxObj.ECHO_ERROR

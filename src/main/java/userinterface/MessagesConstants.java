@@ -8,9 +8,9 @@ public abstract class MessagesConstants {
     public final static int ECHO_WARNING = 3;
 
     //OPTION CONST
-    public final static String OPTION_YES = "yes";
-    public final static String OPTION_NO = "no";
-    public final static String OPTION_CANCEL = "cancel";
+    public final static int OPTION_YES = 1;
+    public final static int OPTION_NO = 0;
+    public final static int OPTION_CANCEL = -1;
 
     //RUN CONST
     public final static int RUN_SILENT = 1;

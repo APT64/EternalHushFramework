@@ -66,7 +66,6 @@ public class EternalHushMain {
     }
 
     private void postInit() throws IOException, InterruptedException{
-        OperationConsole console = ConsoleManager.getInstance("localhost");
         EternalEventSource.initCompleted();
     }
 }

@@ -9,18 +9,19 @@ PyObject* run(PyObject* self, PyObject* args);
 PyObject* dialog(PyObject* self, PyObject* args);
 PyObject* option(PyObject* self, PyObject* args);
 PyObject* print_critical(PyObject* self, PyObject* args);
+PyObject* set_hostname(PyObject* self, PyObject* args);
 
 static PyMethodDef ctxobj_methodsDef[] = {
    { "echo", echo, METH_VARARGS, nullptr },
    { "run", run, METH_VARARGS, nullptr },
    { "dialog", dialog, METH_VARARGS, nullptr },
    { "option", option, METH_VARARGS, nullptr },
-
-   { "_print_critical", print_critical, METH_VARARGS, nullptr },
+   { "set_hostname", set_hostname, METH_VARARGS, nullptr },
 
    { "create_new_connection", create_new_connection, METH_VARARGS, nullptr },
    { "tcp_send", tcp_send, METH_VARARGS, nullptr },
    { "tcp_recv", tcp_recv, METH_VARARGS, nullptr },
+   { "export_global_connection", export_global_connection, METH_VARARGS, nullptr },
 
    { "import_rsa_key", import_rsa_key, METH_VARARGS, nullptr },
    { "decrypt_rsa_data", decrypt_rsa_data, METH_VARARGS, nullptr },

