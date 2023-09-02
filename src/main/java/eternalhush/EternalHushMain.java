@@ -1,8 +1,6 @@
 package eternalhush;
 
-import console.ConsoleManager;
-import console.OperationConsole;
-import core.CoreConnector;
+import clingyspider.ClingySpider;
 import events.EternalEventSource;
 import gui.BasicFrame;
 import gui.IconLoader;
@@ -24,26 +22,25 @@ public class EternalHushMain {
     protected ModuleLoader moduleLoader;
 
     public EternalHushMain(String args[], BasicFrame frame) throws IOException, InterruptedException {
-        /*  Инициализируем глобальные перемнные  */
+        TabPanel tabPanel = new TabPanel();
+
         GlobalVariables.rootFrame = frame;
+        GlobalVariables.rootTabPanel = tabPanel;
 
         new GateWay().start(Integer.parseInt(SettingsLoader.getKeyValue("py4j_port")));
 
         iconLoader = new IconLoader();
-        /*  Загружаем скрипты и плагины  */
 
         moduleLoader = new ModuleLoader();
         moduleLoader.load(GlobalVariables.commonModuleList);
 
-        /*  Настройка и GUI  */
         frame.setTitle("EternalHush Framework " + GlobalVariables.VERSION);
-
-        TabPanel tabPanel = new TabPanel();
 
         operationWindow = new EternalHushWindow(WindowConstants.MAIN_WINDOW);
         settingsWindow = new EternalHushWindow(WindowConstants.SETTINGS_WINDOW);
 
         tabPanel.addTab("Operation", iconLoader.loadIcon("images/console_icon.png"), operationWindow);
+        tabPanel.addTab("ClingySpider", iconLoader.loadIcon("images/planet_icon.png"), new ClingySpider());
         tabPanel.addTab("Settings", iconLoader.loadIcon("images/settings_icon.png"), settingsWindow);
 
         frame.add(tabPanel);

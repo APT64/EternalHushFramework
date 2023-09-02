@@ -17,6 +17,16 @@ public abstract class ConsoleManager {
         }
     }
 
+    public static OperationConsole getFirstDefault(){
+        for (OperationConsole consoleInstance : consoleInstances){
+            String hostname = consoleInstance.getHostname();
+            if (hostname.equals(consoleInstance.getLocalHostname())){
+                return consoleInstance;
+            }
+        }
+        return null;
+    }
+
     public static int getCount(){
         return consoleInstances.size();
     }

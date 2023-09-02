@@ -11,7 +11,7 @@ public class CommandHandler {
         internalCommands = new InternalCommands(console);
 
         if (getPrefix(line) == '!'){
-                ExternalModules externalModules = new ExternalModules(console);
+            ExternalModules externalModules = new ExternalModules(console);
                 String split_line[] = line.split("\\s+(?=(?:[^\"]*\"[^\"]*\")*[^\"]*$)");
                 for (int i = 0; i < split_line.length; i++){
                     String str = split_line[i];
@@ -19,6 +19,7 @@ public class CommandHandler {
                         split_line[i] = str.substring(1, str.length()-1);
                     }
                 }
+                console.printWarning("[Started '" + split_line[0].substring(1) + "' [" + console.getHostname() + "]]\n" );
                 externalModules.processCommand(split_line);
         }
 
