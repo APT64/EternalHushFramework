@@ -1,6 +1,7 @@
 package eternalhush;
 
 import gui.BasicFrame;
+import gui.TabPanel;
 import manager.CommonModule;
 
 import java.awt.*;
@@ -11,5 +12,6 @@ public abstract class GlobalVariables {
     public static ArrayList<CommonModule> commonModuleList = new ArrayList<>();
     public static BasicFrame rootFrame;
     public static Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
-
+    public static TabPanel rootTabPanel;
+    public static TabPanel operationPanel;
 }

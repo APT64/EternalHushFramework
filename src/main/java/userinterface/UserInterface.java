@@ -8,7 +8,6 @@ import java.awt.*;
 import java.util.Scanner;
 
 public class UserInterface {
-    boolean lock = false;
     public void print_critical(String str) {
         OperationConsole consoleInstance = ConsoleManager.getInstance(0); //fix
         String msgText = str;
@@ -36,6 +35,7 @@ public class UserInterface {
     }
 
     public String dialog(int consoleId, String str, String input_type, String default_text) {
+
         OperationConsole consoleInstance = ConsoleManager.getInstance(consoleId);
         String msgText = str;
         String defaultText = "";

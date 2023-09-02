@@ -4,6 +4,7 @@ def Dialog(_str, type=_eternalhush.ctxObj.STRING, default=None):
     """Requests arbitrary user input in the EternalHush console"""
     if isinstance(default, int):
         default = str(default)
+        
     resp = _eternalhush.ctxObj.dialog(_eternalhush.ctxObj.console_id, _str, type, default)
     if type == _eternalhush.ctxObj.INT:
         resp = int(resp)

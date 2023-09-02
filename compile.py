@@ -85,10 +85,10 @@ def build_modules():
         os.system(CMAKE_BIN+"\\cmake.exe -DCMAKE_RUNTIME_OUTPUT_DIRECTORY=../../bin64 -A x64 -S "+ build_files +" -B" + build_files + "\\output64")
         os.system(CMAKE_BIN+"\\cmake.exe --build "+ build_files +"\\output32 --config Release")
         os.system(CMAKE_BIN+"\\cmake.exe --build "+ build_files +"\\output64 --config Release")
-       
+
+        os.system("MKDIR build\\modules\\"+directory+"\\files")
         os.system("XCOPY /e /i /Y "+ script_files +" build\\modules\\"+directory+"\\scripts")
         os.system("COPY "+ desc_file +" build\\modules\\"+directory+"\\ /Y")
-        os.system("MKDIR build\\modules\\"+directory+"\\files")
         for root, dirs, files in os.walk(bin_out32):
             for file in files:
                 shutil.copyfile(os.path.join(root, file), "build\\modules\\"+directory+"\\files\\"+"X32_"+os.path.basename(file))

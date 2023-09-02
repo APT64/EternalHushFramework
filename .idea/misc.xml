@@ -8,7 +8,6 @@
     </option>
     <option name="ignoredFiles">
       <set>
-        <option value="$PROJECT_DIR$/EternalLogger/pom.xml" />
       </set>
     </option>
   </component>

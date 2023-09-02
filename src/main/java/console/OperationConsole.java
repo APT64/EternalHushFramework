@@ -211,7 +211,7 @@ public class OperationConsole extends JPanel implements Runnable {
         return ConsoleId;
     }
 
-    private String getLocalHostname()
+    public String getLocalHostname()
     {
         Map<String, String> env = System.getenv();
         if (env.containsKey("COMPUTERNAME"))

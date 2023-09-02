@@ -27,6 +27,7 @@ public class EternalHushWindow extends JPanel {
         switch (type) {
             case WindowConstants.MAIN_WINDOW:
                 TabPanel operationPanel = new TabPanel();
+                GlobalVariables.operationPanel = operationPanel;
                 for (int i = 0; i < 3; i++){
                     OperationConsole consoleInstance = new OperationConsole();
                     operationPanel.addTab(consoleInstance.getHostname()+ " ["+consoleInstance.getConsoleId()+"]", iconLoader.loadIcon("images/console_icon.png", 31, 31), consoleInstance);
