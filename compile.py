@@ -159,7 +159,7 @@ def build_modules():
     eternel_hush.build_modules()
 
 @cli.command()
-def build_cores():
+def build_core():
     """ Build the core"""
     eternel_hush.download_tools()
     eternel_hush.build_core()
