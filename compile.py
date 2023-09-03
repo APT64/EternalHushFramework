@@ -30,8 +30,8 @@ BANNER = """[bold green]
 console = Console()
 
 # Helpers
-class EternelHushFrameworkBuilder(object):
-    """ EternelHuashFramework builder functions class """
+class EternalHushFrameworkBuilder(object):
+    """ EternalHuashFramework builder functions class """
     def __init__(self) -> None:
         pass
 
@@ -40,7 +40,7 @@ class EternelHushFrameworkBuilder(object):
         print(BANNER)
 
     def build(self):
-        """ Builds the EternelHushFramework """
+        """ Builds the EternalHushFramework """
         console.log('[bold white]\[ [bold green]+ [bold white]] Building [bold green]"ETERNALHUSH FRAMEWORK"[bold white]')
         time.sleep(0.5)
 
@@ -51,11 +51,11 @@ class EternelHushFrameworkBuilder(object):
         console.log('[bold white]\[ [bold green]+ [bold white]] Copying prebuilt content')
         subprocess.run("XCOPY /e /Y prebuilt\\ build\\", shell=True)
 
-        self.build_core()
+        self._build_core()
         self.build_modules()
 
-    def build_core(self):
-        """ Builds only the core of EternelHushFramework """
+    def _build_core(self):
+        """ Builds only the core of EternalHushFramework """
         console.log('[bold white]\[ [bold green]+ [bold white]] Configuring core module')
         subprocess.run(f"{CMAKE_BIN}\\cmake.exe -S EternalHushCore -B EternalHushCore\\build", shell=True)
 
@@ -66,7 +66,7 @@ class EternelHushFrameworkBuilder(object):
         subprocess.run("COPY EternalHushCore\\build\\Release\\EternalHushCore.dll build\\ /Y", shell=True)
 
     def build_modules(self):
-        """ Builds only the modules of EternelHushFramework """
+        """ Builds only the modules of EternalHushFramework """
         console.log('[bold white]\[ [bold green]+ [bold white]] Building additional modules')
 
         for directory in os.listdir("modules"):
@@ -101,7 +101,7 @@ class EternelHushFrameworkBuilder(object):
                     )
 
     def build_gui(self):
-        """ Builds the EternelHushFramework's GUI """
+        """ Builds the EternalHushFramework's GUI """
         console.log('[bold white]\[ [bold green]+ [bold white]] Compiling EternalHush project')
         subprocess.run(f"{MAVEN_BIN}\\mvn.cmd compile", shell=True)
         console.log('Packaging EternalHush project')
@@ -143,56 +143,56 @@ class EternelHushFrameworkBuilder(object):
 # Init cli
 cli = typer.Typer()
 
-# Init EternelHushFrameworkBuilder
-eternel_hush = EternelHushFrameworkBuilder()
+# Init EternalHushFrameworkBuilder
+eternal_hush = EternalHushFrameworkBuilder()
 
 @cli.command()
 def build():
     """ Build the framework """
-    eternel_hush.download_tools()
-    eternel_hush.build()
+    eternal_hush.download_tools()
+    eternal_hush.build()
 
 @cli.command()
 def build_modules():
     """ Build modules """
-    eternel_hush.download_tools()
-    eternel_hush.build_modules()
+    eternal_hush.download_tools()
+    eternal_hush.build_modules()
 
 @cli.command()
 def build_core():
     """ Build the core"""
-    eternel_hush.download_tools()
-    eternel_hush.build_core()
+    eternal_hush.download_tools()
+    eternal_hush._build_core()
 
 @cli.command()
 def build_gui():
     """ Build the GUI """
-    eternel_hush.download_tools()
-    eternel_hush.build_gui()
+    eternal_hush.download_tools()
+    eternal_hush.build_gui()
 
 @cli.command()
 def rebuild():
     """ Rebuild the framework """
-    eternel_hush.download_tools()
-    eternel_hush.clean()
-    eternel_hush.build()
+    eternal_hush.download_tools()
+    eternal_hush.clean()
+    eternal_hush.build()
 
 @cli.command()
 def clean():
     """ Clean up the project directory """
-    eternel_hush.download_tools()
-    eternel_hush.clean()
+    eternal_hush.download_tools()
+    eternal_hush.clean()
 
 @cli.command()
 def force_clean():
     """ Remove all build files """
-    eternel_hush.download_tools()
-    eternel_hush.clean()
-    eternel_hush.remove_tools()
-    eternel_hush.remove_build()
+    eternal_hush.download_tools()
+    eternal_hush.clean()
+    eternal_hush.remove_tools()
+    eternal_hush.remove_build()
 
 run = cli
 
 if __name__ == "__main__":
-    eternel_hush.banner()
+    eternal_hush.banner()
     run()
