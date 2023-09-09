@@ -11,6 +11,6 @@
 			<Description>Command to exec</Description>
 		</Argument>
 	</Command>
-	<Command name='banner' provider='banner.py' type='script'>
+	<Command name='banner' provider='banner.py' dependency='*' type='script'>
 	</Command>
 </Module>

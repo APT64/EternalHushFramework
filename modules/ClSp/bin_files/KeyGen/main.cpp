@@ -18,7 +18,7 @@ NTSTATUS SaveFile(PUCHAR dataBlob, ULONG dataSz, LPCWSTR filePath)
         GENERIC_WRITE,
         0,
         NULL,                   // default security
-        CREATE_NEW,             // create new file only
+        OPEN_ALWAYS,             // create new file only
         FILE_ATTRIBUTE_NORMAL,  // normal file
         NULL);                  // no attr. template
 

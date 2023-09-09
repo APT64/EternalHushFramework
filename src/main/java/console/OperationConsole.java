@@ -13,6 +13,7 @@ import java.awt.*;
 import java.awt.event.*;
 import java.io.*;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Scanner;
 
@@ -40,14 +41,22 @@ public class OperationConsole extends JPanel implements Runnable {
 
     private int ConsoleId;
     private String ConsoleHostname;
+    private Map ConsoleEnvironment;
 
     private String HandledCommand;
     private boolean isUserInput = false;
     private boolean outputEnabled = true;
 
+    private boolean lockFlag = false;
+    private String lockedModule;
+
     public OperationConsole(){
         ConsoleHostname = getLocalHostname();
         ConsoleId = ConsoleManager.getCount();
+        ConsoleEnvironment = new HashMap<>();
+
+        ConsoleEnvironment.put("CONSOLE_ID", String.valueOf(ConsoleId));
+        ConsoleEnvironment.put("CONSOLE_HOSTNAME", ConsoleHostname);
 
         setLayout(new BorderLayout());
         iconLoader = new IconLoader();
@@ -58,7 +67,7 @@ public class OperationConsole extends JPanel implements Runnable {
         handler = new CommandHandler();
         statusPanel = new StatusPanel();
 
-        errorPrinter = new ErrorPrinter(this);
+        errorPrinter = new ErrorPrinter();
 
         inputPanel.setLayout(new BorderLayout());
         inputPanel.setFocusable(false);
@@ -202,6 +211,7 @@ public class OperationConsole extends JPanel implements Runnable {
     }
     public void setHostname(String hostname)
     {
+        ConsoleEnvironment.put("CONSOLE_HOSTNAME", hostname);
         ConsoleHostname = hostname;
         TabPanel tabPanel = (TabPanel)SwingUtilities.getAncestorOfClass(TabPanel.class, this);
         tabPanel.setTitleAt(ConsoleId, hostname+" [" + ConsoleId +"]");
@@ -219,6 +229,21 @@ public class OperationConsole extends JPanel implements Runnable {
         else return env.getOrDefault("HOSTNAME", "Unknown Computer");
     }
 
+    public Map getEnv(){
+        return ConsoleEnvironment;
+    }
+
+    public void setSessionLock(boolean flag, String mod_name){
+        if (flag){
+            if (lockFlag){
+                printError("Session already locked");
+                return;
+            }
+            lockedModule = mod_name;
+        }
+        lockFlag = flag;
+    }
+
     public void run() {
         while (fieldInput.hasNextLine()) {
 
@@ -230,7 +255,12 @@ public class OperationConsole extends JPanel implements Runnable {
                     printDefault(linePrefix + HandledCommand + "\n");
                 }
                 if (HandledCommand.length() > 0) {
-                    handler.CommonHandler(HandledCommand, this);
+                    if (lockFlag){
+                        handler.CommonHandler(HandledCommand, lockedModule, this);
+                    }
+                    else {
+                        handler.CommonHandler(HandledCommand, this);
+                    }
                 }
             }
         }

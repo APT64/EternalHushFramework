@@ -44,6 +44,9 @@ class Commands{
     @JacksonXmlProperty(isAttribute = true, localName = "provider")
     protected String ProviderName;
 
+    @JacksonXmlProperty(isAttribute = true, localName = "dependency")
+    protected String Dependency = "default";
+
     @JacksonXmlProperty(isAttribute = true, localName = "type")
     protected String ProviderType;
 
