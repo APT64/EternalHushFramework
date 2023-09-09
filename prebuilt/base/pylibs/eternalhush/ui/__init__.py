@@ -29,3 +29,11 @@ def Echo(_str, _type):
 def SetHostname(_str):
     """Changes the hostname for the current session"""
     return _eternalhush.ctxObj.set_hostname(_eternalhush.ctxObj.console_id, _str)
+    
+def SetEnv(_str, _val):
+    if isinstance(_val, int):
+        _val = str(_val)
+    return _eternalhush.ctxObj.set_env(_eternalhush.ctxObj.console_id, _str, _val)
+    
+def GetEnv(_str):
+    return _eternalhush.ctxObj.get_env(_eternalhush.ctxObj.console_id, _str)

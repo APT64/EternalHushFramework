@@ -3,8 +3,10 @@ package userinterface;
 import console.CommandHandler;
 import console.ConsoleManager;
 import console.OperationConsole;
+import org.apache.commons.lang3.ArrayUtils;
 
 import java.awt.*;
+import java.util.HashMap;
 import java.util.Scanner;
 
 public class UserInterface {
@@ -138,5 +140,31 @@ public class UserInterface {
     public void update_hostname(int consoleId, String hostname){
         OperationConsole operationConsole = ConsoleManager.getInstance(consoleId);
         operationConsole.setHostname(hostname);
+    }
+
+    public void set_env(int consoleId, String variable, String value){
+        OperationConsole operationConsole = ConsoleManager.getInstance(consoleId);
+        if (value == null){
+            value = "";
+        }
+        operationConsole.getEnv().put(variable, value);
+    }
+
+    public String get_env(int consoleId, String variable){
+        OperationConsole operationConsole = ConsoleManager.getInstance(consoleId);
+        if (variable != null){
+            return (String)operationConsole.getEnv().get(variable);
+        }
+        return null;
+    }
+
+    public void lock_session(int consoleId, String module_name){
+        OperationConsole operationConsole = ConsoleManager.getInstance(consoleId);
+        if (module_name.length() > 0){
+            operationConsole.setSessionLock(true, module_name);
+        }
+
+
+        return;
     }
 }

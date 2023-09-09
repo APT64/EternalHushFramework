@@ -4,6 +4,7 @@ import console.CommandHandler;
 import console.ConsoleManager;
 import console.OperationConsole;
 import eternalhush.GlobalVariables;
+import gui.IconLoader;
 import gui.NativeFileDialog;
 import gui.TabPanel;
 
@@ -81,6 +82,10 @@ public class ClingySpider extends JPanel {
             @Override
             public void actionPerformed(ActionEvent actionEvent) {
                 OperationConsole consoleInstance = ConsoleManager.getFirstDefault();
+                if (consoleInstance == null){
+                    consoleInstance = new OperationConsole();
+                    GlobalVariables.operationPanel.addTab(consoleInstance.getHostname()+ " ["+consoleInstance.getConsoleId()+"]", new IconLoader().loadIcon("images/console_icon.png", 31, 31), consoleInstance);
+                }
                 if (keyVariant.getSelectedItem() == null){
                    keyVariant.setBackground(Color.RED);
                    return;

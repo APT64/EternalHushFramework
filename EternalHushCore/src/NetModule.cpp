@@ -9,8 +9,6 @@
 
 std::vector<TcpClient> connection_list;
 
-extern PyObject* py4j_ep;
-
 PyObject* create_new_connection(PyObject* self, PyObject* args) {
 	int conn_port, conn_type;
 	unsigned char* conn_addr;
@@ -19,16 +17,19 @@ PyObject* create_new_connection(PyObject* self, PyObject* args) {
 	if (conn_type == TCP_CONNECTION)
 	{
 		static TcpClient client;
-		client.setup(conn_port, conn_addr);
-		client.id = connection_list.size();
-		connection_list.push_back(client);
-		return Py_BuildValue("i", client.id);
+		if (client.setup(conn_port, conn_addr))
+		{
+			client.id = connection_list.size();
+			connection_list.push_back(client);
+			return Py_BuildValue("i", client.id);
+		}
+		Py_RETURN_NONE;
 	}
 	Py_RETURN_NONE;
 }
 
 PyObject* tcp_send(PyObject* self, PyObject* args) {
-	int conn_id;
+	int conn_id, send_bytes;
 	Py_buffer buffer;
 	PyArg_ParseTuple(args, "is*", &conn_id, &buffer);
 
@@ -36,10 +37,10 @@ PyObject* tcp_send(PyObject* self, PyObject* args) {
 	{
 		if (connection_list.at(i).id == conn_id) {
 			TcpClient client = connection_list.at(i);
-			client.datasend(buffer.buf, buffer.len);
+			send_bytes = client.datasend(buffer.buf, buffer.len);
 		}
 	}
-	Py_RETURN_NONE;
+	return PyLong_FromLong(send_bytes);
 }
 
 PyObject* tcp_recv(PyObject* self, PyObject* args) {
@@ -55,28 +56,4 @@ PyObject* tcp_recv(PyObject* self, PyObject* args) {
 		}
 	}
 	return PyByteArray_FromStringAndSize((const char*)c_buffer, packet_len);
-}
-
-PyObject* export_global_connection(PyObject* self, PyObject* args) {
-	/*int conn_id;
-	PyArg_ParseTuple(args, "i", &conn_id);
-	for (int i = 0; i < connection_list.size(); i++)
-	{
-		if (connection_list.at(i).id == conn_id) {
-			TcpClient client = connection_list.at(i);
-
-			PyObject* ethu = PyImport_GetModule(PyUnicode_FromString("_eternalhush"));
-			if (!ethu)
-			{
-				Py_FatalError("Built-in modules not initialized");
-			}
-			PyObject* ctxObj = PyObject_GetAttrString(ethu, "ctxObj");
-			PyObject* console_id = PyObject_GetAttrString(ctxObj, "console_id");
-
-			PyObject* command = PyObject_GetAttrString(init_py4j(), "update_connection");
-			PyObject* result = PyObject_CallObject(command, Py_BuildValue("Os", console_id, client.target_addr));
-
-		}
-	}*/
-	Py_RETURN_NONE;
 }

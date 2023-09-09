@@ -5,6 +5,9 @@ import core.CoreConnector;
 import eternalhush.GlobalVariables;
 import org.apache.commons.lang3.ArrayUtils;
 
+import java.util.HashMap;
+import java.util.Map;
+
 public class InternalCommands {
     private OperationConsole currentConsole;
 
@@ -50,7 +53,7 @@ public class InternalCommands {
                         }
                     }
                     currentConsole.printDefault("\nAvailable internal commands:\n");
-                    currentConsole.printDefault("help\nclear\npython\nquit\n");
+                    currentConsole.printDefault("help\nset\nclear\npython\nquit\n");
                 }
                 else {
                     for (int i = 0; i < GlobalVariables.commonModuleList.size(); i++){
@@ -74,6 +77,25 @@ public class InternalCommands {
                 args = ArrayUtils.remove(args, 0);
                 CoreConnector.Export.RunScript(module, currentConsole.getConsoleId(), args.length, args);
                 return;
+            case "set":
+                if (args.length == 0){
+                    for(Object entryObject : currentConsole.getEnv().entrySet()) {
+                        HashMap.Entry<String, String> entry = (HashMap.Entry)entryObject;
+                        String key = entry.getKey();
+                        String value = entry.getValue();
+                        currentConsole.printDefault(key + "=" + value+ "\n");
+                    }
+                    return;
+                }
+                else if (args.length > 2){
+                    currentConsole.printError("Too many arguments provided!\n");
+                    return;
+                }
+                else if (args.length == 1){
+                   args = ArrayUtils.add(args, "");
+                }
+                currentConsole.getEnv().put(args[0], args[1]);
+                return;
             case "quit":
                 currentConsole.printWarning("Exiting from application...\n");
                 System.exit(0);
@@ -82,5 +104,43 @@ public class InternalCommands {
 
         currentConsole.printError("Unrecognized internal command \"" + commandName + "\"!\n");
         currentConsole.printError("Type \".help\" to display the available commands.\n");
+    }
+
+    public void processCommand(String[] args, String locked_module){
+        String[] original_args = args;
+        String commandName = args[0].substring(1);
+        args = ArrayUtils.remove(args, 0);
+        switch (commandName) {
+            case "help":
+                if (args.length == 0){
+                    currentConsole.printDefault("Usage: help <command>\n\n");
+                    currentConsole.printDefault("Available external commands:\n");
+                    for (int i = 0; i < GlobalVariables.commonModuleList.size(); i++){
+                        CommonModule currentModule = GlobalVariables.commonModuleList.get(i);
+                        for (int j = 0; j < currentModule.getCmdCount(); j++) {
+                            if (currentModule.ModuleName.equalsIgnoreCase(locked_module) || currentModule.getCmd(j).Dependency.equals("*") || currentModule.getCmd(j).Dependency.equals(locked_module)){
+                                currentConsole.printDefault(currentModule.getCmdName(j) + "\n");
+                            }
+                        }
+                    }
+                    currentConsole.printDefault("\nAvailable internal commands:\n");
+                    currentConsole.printDefault("help\nset\nclear\npython\nquit\n");
+                }
+                else {
+                    for (int i = 0; i < GlobalVariables.commonModuleList.size(); i++){
+                        CommonModule currentModule = GlobalVariables.commonModuleList.get(i);
+                        for (int j = 0; j < currentModule.getCmdCount(); j++) {
+                            if (currentModule.getCmdName(j).equals(args[0])){
+                                currentConsole.printDefault(createHelp(currentModule.getCmd(j)));
+                                return;
+                            }
+                        }
+                    }
+                    currentConsole.printError("Command \"" + args[0] + "\" does not exist\n");
+                }
+                return;
+            default:
+                processCommand(original_args);
+        }
     }
 }

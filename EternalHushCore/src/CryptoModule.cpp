@@ -32,7 +32,8 @@ NTSTATUS import_privkey(BCRYPT_ALG_HANDLE hProvider, PBYTE lpData, ULONG keySize
 	status = BCryptImportKeyPair(hProvider, NULL, BCRYPT_RSAFULLPRIVATE_BLOB, hKey, lpData, keySize, 0);
 	if (!NT_SUCCESS(status))
 	{
-		return status;
+		PyErr_SetString(PyExc_KeyError, "Invalid private key");
+		PyErr_Print();
 	}
 
 	return status;
@@ -46,7 +47,8 @@ NTSTATUS import_pubkey(BCRYPT_ALG_HANDLE hProvider, PBYTE lpData, ULONG keySize,
 	status = BCryptImportKeyPair(hProvider, NULL, BCRYPT_RSAPUBLIC_BLOB, hKey, lpData, keySize, 0);
 	if (!NT_SUCCESS(status))
 	{
-		return status;
+		PyErr_SetString(PyExc_KeyError, "Invalid public key");
+		PyErr_Print();
 	}
 
 	return status;
@@ -84,15 +86,21 @@ PyObject* import_rsa_key(PyObject* self, PyObject* args) {
 	std::vector<char> key_bytes((std::istreambuf_iterator<char>(key_file)), (std::istreambuf_iterator<char>()));
 	if (type == 0)
 	{
-		import_privkey(hAlgorithm, (PBYTE)(key_bytes.data()), key_bytes.size(), &key);
+		if (!NT_SUCCESS(import_privkey(hAlgorithm, (PBYTE)(key_bytes.data()), key_bytes.size(), &key)))
+		{
+			Py_RETURN_NONE;
+		}
 	}
 	else if (type == 1)
 	{
-		import_pubkey(hAlgorithm, (PBYTE)(key_bytes.data()), key_bytes.size(), &key);
+		if (!NT_SUCCESS(import_pubkey(hAlgorithm, (PBYTE)(key_bytes.data()), key_bytes.size(), &key)))
+		{
+			Py_RETURN_NONE;
+		}
 	}
 	else
 	{
-		PyErr_SetString(PyExc_RuntimeError, "invalid key type");
+		PyErr_SetString(PyExc_RuntimeError, "Invalid key type");
 	}
 
 	return Py_BuildValue("K", key);

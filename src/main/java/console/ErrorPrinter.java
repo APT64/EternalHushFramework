@@ -6,8 +6,8 @@ import java.io.OutputStream;
 
 public class ErrorPrinter extends OutputStream {
     private OperationConsole console;
-    public ErrorPrinter(OperationConsole instance){
-        console = instance;
+    public ErrorPrinter(){
+        console = ConsoleManager.getFirstDefault();
     }
 
     @Override

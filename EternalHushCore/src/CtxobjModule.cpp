@@ -68,6 +68,39 @@ PyObject* set_hostname(PyObject* self, PyObject* args) {
     Py_RETURN_NONE;
 }
 
+PyObject* set_env(PyObject* self, PyObject* args) {
+    PyObject* ethu = PyImport_GetModule(PyUnicode_FromString("_eternalhush"));
+    PyObject* ctxobj = PyObject_GetAttrString(ethu, "ctxObj");
+    PyObject* jgateway = PyObject_GetAttrString(ctxobj, "py4j_gw");
+    PyObject* entry_point = PyObject_GetAttrString(jgateway, "entry_point");
+    PyObject* command = PyObject_GetAttrString(entry_point, "set_env");
+    PyObject* result = PyObject_CallObject(command, args);
+
+    Py_RETURN_NONE;
+}
+
+PyObject* get_env(PyObject* self, PyObject* args) {
+    PyObject* ethu = PyImport_GetModule(PyUnicode_FromString("_eternalhush"));
+    PyObject* ctxobj = PyObject_GetAttrString(ethu, "ctxObj");
+    PyObject* jgateway = PyObject_GetAttrString(ctxobj, "py4j_gw");
+    PyObject* entry_point = PyObject_GetAttrString(jgateway, "entry_point");
+    PyObject* command = PyObject_GetAttrString(entry_point, "get_env");
+    PyObject* result = PyObject_CallObject(command, args);
+
+    return result;
+}
+
+PyObject* lock_session(PyObject* self, PyObject* args) {
+    PyObject* ethu = PyImport_GetModule(PyUnicode_FromString("_eternalhush"));
+    PyObject* ctxobj = PyObject_GetAttrString(ethu, "ctxObj");
+    PyObject* jgateway = PyObject_GetAttrString(ctxobj, "py4j_gw");
+    PyObject* entry_point = PyObject_GetAttrString(jgateway, "entry_point");
+    PyObject* command = PyObject_GetAttrString(entry_point, "lock_session");
+    PyObject* result = PyObject_CallObject(command, args);
+
+    Py_RETURN_NONE;
+}
+
 PyObject* PyInit_ctxobj() {
     PyObject* ctxObj_module = PyModule_Create(&ctxobj_moduleDef);
 

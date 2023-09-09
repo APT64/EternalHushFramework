@@ -3,8 +3,8 @@
 class TcpClient {
 public:
 
-	void setup(int port, unsigned char* host);
-	void datasend(LPVOID data, ULONG size);
+	bool setup(int port, unsigned char* host);
+	int datasend(LPVOID data, ULONG size);
 	int datarecv(LPVOID data, ULONG size);
 	void end();
 	SOCKET sock;

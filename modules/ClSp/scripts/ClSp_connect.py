@@ -27,7 +27,7 @@ IMPANT_INFO = {
 
 def main(args):
     tcp_connection = eh.net.NewConnection(args[0], int(args[1]), eh.TCP_CONNECTION)
-    if(tcp_connection < 0):
+    if tcp_connection == None:
         eh.ui.Echo("Failed to open direct TCP connection to " + args[0] + ":" + args[1], eh.ECHO_ERROR)
         return
     eh.ui.Echo("Opened direct TCP connection to " + args[0] + ":" + args[1], eh.ECHO_DEFAULT)
@@ -43,7 +43,7 @@ def main(args):
 
     hello_response = eh.data.Struct(HELLO_RESPONSE)
     resp = eh.net.TcpRecv(tcp_connection, len(hello_response))
-    if(not resp):
+    if not resp:
         eh.ui.Echo("Invalid data received", eh.ECHO_ERROR)
         return
     eh.ui.Echo("Received Hello response", eh.ECHO_DEFAULT)
@@ -51,6 +51,9 @@ def main(args):
     
     eh.ui.Echo("Decrypting implant info with privatekey", eh.ECHO_DEFAULT)
     key = eh.crypto.ImportRsaKey(args[2], eh.PRIVATE_KEY)
+    if not key:
+        eh.ui.Echo("Invalid RSA private key specified", eh.ECHO_ERROR)
+        return
     decrypted_implant_info = eh.crypto.DecryptRsaData(key, hello_response.implant_info)
 
     implant_info = eh.data.Struct(IMPANT_INFO)
@@ -71,8 +74,8 @@ def main(args):
         eh.ui.Echo("Platform architecture: X86", eh.ECHO_DEFAULT)
     eh.ui.Echo("Implant platform: " + implant_info.implant_platform.hex(), eh.ECHO_DEFAULT)
     
-    eh.net.ExportConnection(tcp_connection)
     eh.ui.SetHostname(args[0])
+    eh.net.LockSession("clsp")
     
 if __name__=="__main__":
     main(sys.argv)

@@ -4,9 +4,8 @@ def NewConnection(addr, port, type):
     """Establishes and provides access to a direct network connection"""
     return _eternalhush.ctxObj.create_new_connection(addr, port, type)
     
-def ExportConnection(connection_id):
-    """Establishes and provides access to a direct network connection"""
-    return _eternalhush.ctxObj.export_global_connection(connection_id)
+def LockSession(_str):
+    return _eternalhush.ctxObj.lock_session(_eternalhush.ctxObj.console_id, _str)
     
 def TcpSend(id, data):
     """Sends a TCP packet over the specified network connection"""
