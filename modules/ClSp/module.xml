@@ -21,5 +21,7 @@
 		<Argument name='key_path' type='string'>
 			<Description>Keypair output directory</Description>
 		</Argument>
-	</Command>	
+	</Command>		
+	<Command name='whoami' provider='whoami.py' dependency='clsp' type='script'></Command>	
+	<Command name='pwd' provider='pwd.py' dependency='clsp' type='script'></Command>	
 </Module>

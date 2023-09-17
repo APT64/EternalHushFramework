@@ -4,10 +4,7 @@
 #include <vector>
 #include <string>
 
-#define TCP_CONNECTION 2
-#define HTTP_CONNECTION 4
-
-std::vector<TcpClient> connection_list;
+std::vector<Connection*> connection_list;
 
 PyObject* create_new_connection(PyObject* self, PyObject* args) {
 	int conn_port, conn_type;
@@ -16,14 +13,14 @@ PyObject* create_new_connection(PyObject* self, PyObject* args) {
 
 	if (conn_type == TCP_CONNECTION)
 	{
-		static TcpClient client;
+		Connection* tcp_connection = new Connection;
+		TcpClient client(tcp_connection);
 		if (client.setup(conn_port, conn_addr))
 		{
-			client.id = connection_list.size();
-			connection_list.push_back(client);
-			return Py_BuildValue("i", client.id);
+			tcp_connection->id = connection_list.size();
+			connection_list.push_back(tcp_connection);
+			return Py_BuildValue("i", tcp_connection->id);
 		}
-		Py_RETURN_NONE;
 	}
 	Py_RETURN_NONE;
 }
@@ -35,9 +32,8 @@ PyObject* tcp_send(PyObject* self, PyObject* args) {
 
 	for (int i = 0; i < connection_list.size(); i++)
 	{
-		if (connection_list.at(i).id == conn_id) {
-			TcpClient client = connection_list.at(i);
-			send_bytes = client.datasend(buffer.buf, buffer.len);
+		if (connection_list.at(i)->id == conn_id) {
+			send_bytes = TcpClient(connection_list.at(i)).datasend(buffer.buf, buffer.len);
 		}
 	}
 	return PyLong_FromLong(send_bytes);
@@ -50,9 +46,8 @@ PyObject* tcp_recv(PyObject* self, PyObject* args) {
 	c_buffer = (unsigned char*)VirtualAlloc(0, packet_len, MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE);
 	for (int i = 0; i < connection_list.size(); i++)
 	{
-		if (connection_list.at(i).id == conn_id) {
-			TcpClient client = connection_list.at(i);
-			client.datarecv(c_buffer, packet_len);
+		if (connection_list.at(i)->id == conn_id) {
+			TcpClient(connection_list.at(i)).datarecv(c_buffer, packet_len);
 		}
 	}
 	return PyByteArray_FromStringAndSize((const char*)c_buffer, packet_len);

@@ -761,4 +761,8 @@ FodyWeavers.xsd
 # Custom
 cmake
 maven
+bin64/
+bin32/
+output64/
+output32/
 # End of https://www.toptal.com/developers/gitignore/api/cmake,ninja,python,visualstudio,intellij,java,maven,git

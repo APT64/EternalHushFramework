@@ -226,7 +226,7 @@ public class OperationConsole extends JPanel implements Runnable {
         Map<String, String> env = System.getenv();
         if (env.containsKey("COMPUTERNAME"))
             return env.get("COMPUTERNAME");
-        else return env.getOrDefault("HOSTNAME", "Unknown Computer");
+        else return env.getOrDefault("HOSTNAME", "UNKNOWN");
     }
 
     public Map getEnv(){
@@ -250,7 +250,7 @@ public class OperationConsole extends JPanel implements Runnable {
             if (!isUserInput) {
                 HandledCommand = fieldInput.nextLine();
 
-                String linePrefix = new String("[" + new java.text.SimpleDateFormat("HH:mm:ss").format(java.util.Calendar.getInstance().getTime()) + "] >> ");
+                String linePrefix = "[" + new java.text.SimpleDateFormat("HH:mm:ss").format(java.util.Calendar.getInstance().getTime()) + "] >> ";
                 if (outputEnabled) {
                     printDefault(linePrefix + HandledCommand + "\n");
                 }

@@ -1,4 +1,7 @@
 #include <Windows.h>
+#include <vector>
+#include <net.h>
+
 #pragma pack(1)
 typedef struct _UNICODE_STRING {
 	USHORT Length;
@@ -61,10 +64,32 @@ typedef struct _HELLORESPONSE {
 	char next_iv[16];
 } HELLORESPONSE, * PHELLORESPONSE;
 
+typedef struct _PAYLOADINFO {
+	ULONG payload_size;
+	USHORT payload_type;
+	USHORT payload_arch;
+	char padding[8];
+} PAYLOADINFO, * PPAYLOADINFO;
+
+typedef struct _PAYLOAD {
+	USHORT part_size;
+	char payload_part[4094];
+} PAYLOAD, * PPAYLOAD;
+
 typedef struct _CONFIG {
 	long long magic_value = 0x99c72f6099c72f60;
 	short port = 0x0;
 	long id = 0x0;
 } CONFIG, * PCONFIG;
+
+typedef struct {
+	SOCKET connection;
+	std::vector<UCHAR> aes_key;
+	std::vector<UCHAR> iv_key;
+	RECVENCRYPTED recv_encrypted;
+	SENDENCRYPTED send_encrypted;
+	int argc;
+	char** argv;
+}MODULE_CONTEXT, * PMODULE_CONTEXT;
 
 #pragma pack(0)

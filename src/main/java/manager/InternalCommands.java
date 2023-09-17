@@ -49,7 +49,9 @@ public class InternalCommands {
                     for (int i = 0; i < GlobalVariables.commonModuleList.size(); i++){
                         CommonModule currentModule = GlobalVariables.commonModuleList.get(i);
                         for (int j = 0; j < currentModule.getCmdCount(); j++) {
-                            currentConsole.printDefault(currentModule.getCmdName(j) + "\n");
+                            if (currentModule.getCmd(j).Dependency.equals("default") || currentModule.getCmd(j).Dependency.equals("*")){
+                                currentConsole.printDefault(currentModule.getCmdName(j) + "\n");
+                            }
                         }
                     }
                     currentConsole.printDefault("\nAvailable internal commands:\n");
