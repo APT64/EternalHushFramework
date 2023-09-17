@@ -5,3 +5,5 @@ set(CMAKE_SHARED_LINKER_FLAGS /MANIFEST:NO)
 
 add_subdirectory ("ClSp_Tcp_Exe")
 add_subdirectory ("KeyGen")
+add_subdirectory ("Whoami")
+add_subdirectory ("Pwd")

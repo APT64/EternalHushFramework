@@ -2,6 +2,7 @@
 #include <vector>
 #include <fstream>
 #include <string>
+#include <AES.h>
 #pragma comment (lib, "bcrypt.lib")
 #define NT_SUCCESS(Status)          (((NTSTATUS)(Status)) >= 0)
 
@@ -130,4 +131,43 @@ PyObject* encrypt_rsa_data(PyObject* self, PyObject* args) {
 	encrypt_data(key, (PUCHAR)data.buf, data.len, encrypted_data, encrypted_size);
 
 	return PyByteArray_FromStringAndSize((const char*)encrypted_data, encrypted_size);
+}
+
+PyObject* decrypt_aes_data(PyObject* self, PyObject* args) {
+	Py_buffer data, key, iv;
+
+	PyArg_ParseTuple(args, "s*s*s*", &key, &iv, &data);
+
+	if (data.len % 16 != 0 || data.len == 0)
+	{
+		PyErr_SetString(PyExc_ArithmeticError, "Invalid data for decryption");
+		PyErr_Print();
+		Py_RETURN_NONE;
+	}
+
+	AES aes(AESKeyLength::AES_256);
+	std::vector<UCHAR> enc_data((char*)data.buf, (char*)data.buf + data.len);
+	std::vector<UCHAR> aes_key((char*)key.buf, (char*)key.buf + key.len);
+	std::vector<UCHAR> aes_iv((char*)iv.buf, (char*)iv.buf + iv.len);
+
+	std::vector<UCHAR> dec = aes.DecryptCBC(enc_data, aes_key, aes_iv);
+	return PyByteArray_FromStringAndSize((const char*)dec.data(), dec.size());
+}
+
+PyObject* encrypt_aes_data(PyObject* self, PyObject* args) {
+	Py_buffer data, key, iv;
+
+	PyArg_ParseTuple(args, "s*s*s*", &key, &iv, &data);
+
+	AES aes(AESKeyLength::AES_256);
+
+	std::vector<UCHAR> plain_data((char*)data.buf, (char*)data.buf + data.len);
+	std::vector<UCHAR> aes_key((char*)key.buf, (char*)key.buf + key.len);
+	std::vector<UCHAR> aes_iv((char*)iv.buf, (char*)iv.buf + iv.len);
+	while (plain_data.size() % 16 != 0 || plain_data.size() == 0) {
+		plain_data.resize(plain_data.size() + 1);
+	}
+
+	std::vector<UCHAR> enc = aes.EncryptCBC(plain_data, aes_key, aes_iv);
+	return PyByteArray_FromStringAndSize((const char*)enc.data(), enc.size());
 }

@@ -22,16 +22,12 @@ void PrepareSysModule() {
 
 	AddSearchPath(current_path2);
 	AddSearchPath(current_path2 + L"\\CoreLibs\\Lib\\site-packages");
-	AddSearchPath(current_path2 + L"\\modules");
 	AddSearchPath(current_path2 + L"\\base\\pylibs");
-	AddSearchPath(current_path2 + L"\\base\\pylibs\\internal");
 }
 
-void AddSearchPath(std::wstring path) {
+std::string PythonizePath(std::string path) {
 	std::string pythonized_path;
-
 	pythonized_path.resize(path.size() + 100);
-
 	int k = 0;
 	for (int i = 0; path[i]; i++)
 	{
@@ -40,9 +36,27 @@ void AddSearchPath(std::wstring path) {
 		}
 		pythonized_path[k++] = path[i];
 	}
+	return pythonized_path;
+}
+
+std::string PythonizePath(std::wstring path) {
+	std::string pythonized_path;
+	pythonized_path.resize(path.size() + 100);
+	int k = 0;
+	for (int i = 0; path[i]; i++)
+	{
+		if (path[i] == '\\') {
+			pythonized_path[k++] = '\\';
+		}
+		pythonized_path[k++] = path[i];
+	}
+	return pythonized_path;
+}
+
+void AddSearchPath(std::wstring path) {
 
 	char line[MAX_PATH * 2];
-	sprintf(line, "import sys\nsys.path.append(\"%s\")", pythonized_path.c_str());
+	sprintf(line, "import sys\nsys.path.append(\"%s\")", PythonizePath(path).c_str());
 	PyRun_SimpleStringFlags(line, NULL);
 }
 
@@ -89,12 +103,16 @@ void ExecuteScript(char* script_name, int console_id, int argc, char* argv[]) {
 		PySys_SetArgv(argc, wargv);
 		char line[MAX_PATH * 2];
 		sprintf(line, "import _eternalhush\n_eternalhush.ctxObj.console_id = %d", console_id);
-		PyRun_SimpleStringFlags(line, NULL);		
+		PyRun_SimpleStringFlags(line, NULL);	
 
 		PyObject* ethu = PyImport_GetModule(PyUnicode_FromString("_eternalhush"));
 		PyObject* ctxobj = PyObject_GetAttrString(ethu, "ctxObj");
 		PyObject_SetAttrString(ctxobj, "py4j_gw", py4j_gw);
-
+		
+		sprintf(line, "import os\nWORKDIR = os.path.realpath(os.path.dirname(\"%s\") + \"\\\\..\")", PythonizePath(script_name).c_str());
+		PyRun_SimpleStringFlags(line, NULL);
+		PyRun_SimpleStringFlags("FILEDIR = os.path.join(WORKDIR, \"files\")", NULL);
+		PyRun_SimpleStringFlags("STORAGEDIR = os.path.join(WORKDIR, \"storage\")", NULL);
 		PyRun_SimpleFile(pScript, script_name);
 		
 		PyObject_CallNoArgs(PyObject_GetAttrString(py4j_gw, "close"));

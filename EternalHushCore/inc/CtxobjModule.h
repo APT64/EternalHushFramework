@@ -32,6 +32,8 @@ static PyMethodDef ctxobj_methodsDef[] = {
    { "import_rsa_key", import_rsa_key, METH_VARARGS, nullptr },
    { "decrypt_rsa_data", decrypt_rsa_data, METH_VARARGS, nullptr },
    { "encrypt_rsa_data", encrypt_rsa_data, METH_VARARGS, nullptr },
+   { "decrypt_aes_data", decrypt_aes_data, METH_VARARGS, nullptr },
+   { "encrypt_aes_data", encrypt_aes_data, METH_VARARGS, nullptr },
 
    { nullptr, nullptr, 0, nullptr }
 };
