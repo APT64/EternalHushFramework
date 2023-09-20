@@ -1,1 +1,1 @@
-*.py linguist-language=Java
+*.py linguist-detectable=false
