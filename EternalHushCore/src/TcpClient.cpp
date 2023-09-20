@@ -13,7 +13,7 @@ bool TcpClient::setup(int port, unsigned char* host) {
 		PyErr_Print();
 		return false;
 	}
-	
+
 	client.sin_family = AF_INET;
 	client.sin_port = htons(port);
 	client.sin_addr.s_addr = inet_addr((const char*)host);
