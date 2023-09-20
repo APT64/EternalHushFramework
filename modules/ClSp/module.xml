@@ -24,4 +24,10 @@
 	</Command>		
 	<Command name='whoami' provider='whoami.py' dependency='clsp' type='script'></Command>	
 	<Command name='pwd' provider='pwd.py' dependency='clsp' type='script'></Command>	
+	<Command name='exec' provider='exec.py' dependency='clsp' type='script'>
+		<Description>Executes the specified command and returns the output</Description>
+		<Argument name='cmd' type='string'>
+			<Description>Command to execute</Description>
+		</Argument>
+	</Command>	
 </Module>
