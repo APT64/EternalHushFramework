@@ -21,8 +21,7 @@ public class ExternalModules {
         for (CommonModule module : GlobalVariables.commonModuleList){ //iterate loaded modules
 
             for (int j = 0; j < module.getCmdCount(); j++){ //iterate commands
-                if (commandName.equalsIgnoreCase(module.getCmd(j).CommandName)){
-
+                if (commandName.equalsIgnoreCase(module.getCmd(j).CommandName) && (module.getCmd(j).Dependency.equals("default") || module.getCmd(j).Dependency.equals("*"))){
                     if (args.length-1 != module.getCmd(j).getArgCount()){
                         currentConsole.printError("You provided " + (args.length-1) + " arguments, but only " + module.getCmd(j).getArgCount() +" were expected!\n");
                         return;

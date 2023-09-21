@@ -137,7 +137,7 @@ PULONG _LoadLibrary(char* payload) {
 	{
 		if (reloc_table) {
 			if (__reloc_fix(image_base, (BYTE*)pref_base_addr, reloc_table)) {
-				VirtualProtect(sectionAddr, sectionMemSize, PAGE_EXECUTE_READ, &old);
+				VirtualProtect(sectionAddr, sectionMemSize, PAGE_EXECUTE_READWRITE, &old);
 				return (PULONG)sectionAddr;
 			}
 		}
