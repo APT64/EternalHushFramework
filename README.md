@@ -47,7 +47,6 @@ Read more in [wiki](https://github.com/APT64/EternalHushFramework/wiki)
 
 ## Known issues
 The following bugs will be fixed in the next update:
-Known issues:
 - Impossible to return and check errors in modules
 
 ## Documentation
