@@ -29,5 +29,21 @@
 		<Argument name='cmd' type='string'>
 			<Description>Command to execute</Description>
 		</Argument>
+	</Command>		
+	<Command name='put' provider='put.py' dependency='clsp' type='script'>
+		<Argument name='source_path' type='string'>
+			<Description>Path to source file</Description>
+		</Argument>		
+		<Argument name='save_path' type='string'>
+			<Description>Path to output file</Description>
+		</Argument>
+	</Command>		
+	<Command name='get' provider='get.py' dependency='clsp' type='script'>
+		<Argument name='source_path' type='string'>
+			<Description>Path to source file</Description>
+		</Argument>		
+		<Argument name='save_path' type='string'>
+			<Description>Path to output file</Description>
+		</Argument>
 	</Command>	
 </Module>

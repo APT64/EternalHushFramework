@@ -4,6 +4,8 @@ import time
 MAGIC_VAL1 = 0x6de239bd 
 MAGIC_VAL2 = 0x0fd4fb82 
 
+ERROR_MAGIC = 0xadbc
+
 X64_ARCH = 0x8
 X32_ARCH = 0x4
 
@@ -45,6 +47,12 @@ ARGUMENT = {
 PAYLOAD = {
     "part_size": eh.SHORT,
     "payload_part": 4094
+}
+
+ERROR_STATUS = {
+    "status_code": eh.LONG,
+    "error_magic": eh.SHORT,
+    "padding": 10
 }
 
 def ExecuteModule(module_name, args=[], payload_arch=X64_ARCH):

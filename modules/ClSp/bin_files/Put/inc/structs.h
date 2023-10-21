@@ -1,6 +1,5 @@
 #include <Windows.h>
 #include <vector>
-#include <string>
 
 typedef VOID(*RECVENCRYPTED)(std::vector<UCHAR> key, std::vector<UCHAR> iv, SOCKET s, char* buffer, int len);
 typedef VOID(*SENDENCRYPTED)(std::vector<UCHAR> key, std::vector<UCHAR> iv, SOCKET s, char* buffer, int len);
@@ -15,6 +14,12 @@ typedef struct {
 }MODULE_CONTEXT, * PMODULE_CONTEXT;
 
 typedef struct {
-	USHORT username_length;
-	char username[254];
-}USERNAME, * PUSERNAME;
+	USHORT part_length;
+	char file_part[4094];
+}FILEPART, * PFILEPART;
+
+typedef struct {
+	USHORT part_count;
+	USHORT file_size;
+	char padding[12];
+}FILEINFO, * PFILEINFO;

@@ -1,0 +1,7 @@
+BREAK_EXECUTION = 0xffffffff
+
+error_table = {
+    "ERROR_SUCCESS" : 0x00000000,
+    "ERROR_FILE_NOT_FOUND" : 0x00000001,
+    "ERROR_PATH_NOT_FOUND" : 0x00000002
+}

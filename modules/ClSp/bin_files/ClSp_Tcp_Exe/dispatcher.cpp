@@ -114,6 +114,7 @@ void main_dispatcher(SOCKET client_socket) {
 						recv_bytes = recv(client_socket, (char*)encrypted_payload.data(), encrypted_payload.size(), 0);
 						std::vector<UCHAR> payload_rawpart = aes.DecryptCBC(encrypted_payload, aes_key, iv);
 						payload_part = (PPAYLOAD)payload_rawpart.data();
+
 						memcpy(payload + payload_size, payload_part->payload_part, payload_part->part_size);
 						payload_size += payload_part->part_size;
 					} while (payload_part->part_size != 0);

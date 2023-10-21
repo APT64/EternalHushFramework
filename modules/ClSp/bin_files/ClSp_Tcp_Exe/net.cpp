@@ -16,7 +16,7 @@ void recv_encrypted(std::vector<UCHAR> key, std::vector<UCHAR> iv, SOCKET s, cha
 		AES aes(AESKeyLength::AES_256);
 		std::vector<UCHAR> vec_data(buf, buf + len);
 		auto data = aes.DecryptCBC(vec_data, key, iv);
-		buffer = (char*)data.data();
+		memcpy(buffer, data.data(), len);
 	}
 	return;
 }

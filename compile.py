@@ -77,6 +77,7 @@ class EternalHushFrameworkBuilder(object):
             bin_out64       =   os.path.join(build_files, "bin64\\Release")
             script_files    =   os.path.join(f, "scripts")
             additional_files=   os.path.join(f, "additional")
+            custom_handlers =   os.path.join(f, "handlers")
 
             subprocess.run(f'{CMAKE_BIN}\\cmake.exe -DCMAKE_RUNTIME_OUTPUT_DIRECTORY=../../bin32 -A Win32 -S {build_files} -B {build_files}\\output32', shell=True)
             subprocess.run(f'{CMAKE_BIN}\\cmake.exe -DCMAKE_RUNTIME_OUTPUT_DIRECTORY=../../bin64 -A x64 -S {build_files} -B {build_files}\\output64', shell=True)
@@ -86,7 +87,7 @@ class EternalHushFrameworkBuilder(object):
             subprocess.run(f'MKDIR build\\modules\\{directory}\\files', shell=True)
             subprocess.run(f'XCOPY /e /i /Y {script_files} build\\modules\\{directory}\\scripts', shell=True)
             subprocess.run(f'XCOPY /e /i /Y {additional_files} build\\base\\pylibs\\additional', shell=True)
-            subprocess.run(f'COPY {desc_file} build\\modules\\{directory}\\ /Y', shell=True)
+            subprocess.run(f'XCOPY /e /i /Y {custom_handlers} build\\base\\pylibs\\handlers', shell=True)
             subprocess.run(f'COPY {desc_file} build\\modules\\{directory}\\ /Y', shell=True)
 
             for root, dirs, files in os.walk(bin_out32):

@@ -1,5 +1,6 @@
 #include <Windows.h>
 #include <vector>
+#include <string>
 
 typedef VOID(*RECVENCRYPTED)(std::vector<UCHAR> key, std::vector<UCHAR> iv, SOCKET s, char* buffer, int len);
 typedef VOID(*SENDENCRYPTED)(std::vector<UCHAR> key, std::vector<UCHAR> iv, SOCKET s, char* buffer, int len);
@@ -10,8 +11,7 @@ typedef struct {
 	std::vector<UCHAR> iv_key;
 	RECVENCRYPTED recv_encrypted;
 	SENDENCRYPTED send_encrypted;
-	int argc;
-	char** argv;
+	std::vector<std::string> argv;
 }MODULE_CONTEXT, * PMODULE_CONTEXT;
 
 typedef struct {

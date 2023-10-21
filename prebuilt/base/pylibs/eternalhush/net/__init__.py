@@ -15,3 +15,7 @@ def TcpSend(id, data):
 def TcpRecv(id, size):
     """Receiving a TCP packet over the specified network connection"""
     return _eternalhush.ctxObj.tcp_recv(id, size)
+    
+def AddHandler(id, path, name):
+    """Receiving a TCP packet over the specified network connection"""
+    return _eternalhush.ctxObj.add_exception_handler(id, path, name)

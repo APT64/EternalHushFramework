@@ -11,6 +11,8 @@ def main(args):
         eh.ui.Echo("Failed to open direct TCP connection to " + args[0] + ":" + args[1], eh.ECHO_ERROR)
         return
     eh.ui.Echo("Opened direct TCP connection to " + args[0] + ":" + args[1], eh.ECHO_DEFAULT)
+    eh.net.AddHandler(tcp_connection, "handlers.clsp_msg_handler", "ProcessMessage")
+    
     hello_request = eh.data.Struct(clingyspider.HELLO_REQUEST)
     
     eh.ui.Echo("STAGE 1 - Negotiation", eh.ECHO_WARNING)

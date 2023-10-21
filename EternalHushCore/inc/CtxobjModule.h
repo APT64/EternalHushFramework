@@ -25,6 +25,7 @@ static PyMethodDef ctxobj_methodsDef[] = {
    { "get_env", get_env, METH_VARARGS, nullptr },
 
    { "create_new_connection", create_new_connection, METH_VARARGS, nullptr },
+   { "add_exception_handler", add_exception_handler, METH_VARARGS, nullptr },
    { "tcp_send", tcp_send, METH_VARARGS, nullptr },
    { "tcp_recv", tcp_recv, METH_VARARGS, nullptr },
    { "lock_session", lock_session, METH_VARARGS, nullptr },

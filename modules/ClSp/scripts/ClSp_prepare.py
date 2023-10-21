@@ -113,7 +113,7 @@ def patch(name):
     if rsa_magic_val > 0:
         rsa_publickey = eh.data.Struct(RSA_KEY)
         rsa_publickey.from_bytes(config.full_data(), global_offset=rsa_magic_val)
-        rsa_publickey.public_key = public_key[::-1]
+        rsa_publickey.public_key = public_key
         try:
             dt = datetime.datetime.now()
             current_time = dt.strftime("%Y_%m_%d_%Hh%Mm%Ss")
@@ -121,7 +121,7 @@ def patch(name):
             os.makedirs(out_path)
             out_path = os.path.join(out_path, "ClingySpider.configured")
             with open(out_path, "wb+") as f:
-                wr_bytes = f.write(config.full_data())
+                wr_bytes = f.write(rsa_publickey.full_data())
                 eh.ui.Echo("Configured implant at {}".format(out_path), eh.ECHO_GOOD)
                 eh.ui.Echo("Written {} bytes".format(wr_bytes), eh.ECHO_GOOD)
         except IOError:
