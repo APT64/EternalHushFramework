@@ -10,8 +10,6 @@
   </p>
 </div>
 
-## :snowflake: Development is temporarily suspended! :snowflake:
-
 ## About project
 
 EternalHush Framework is a new open source project that is an advanced C&C framework. Designed specifically for Windows operating systems, it allows users to easily extend its functionality by developing plugins in Python. This is achieved through its own Python API.
