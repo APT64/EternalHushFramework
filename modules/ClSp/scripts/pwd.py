@@ -17,9 +17,9 @@ def main(args):
     
     path = eh.data.Struct(CURRENTPATH)
     path.from_bytes(eh.crypto.DecryptAesData(session_key, next_iv, encrypted_path))
-    length = int.from_bytes(path.path_length, "little")
+    length = path.path_length.get(int)
     
-    current_path = path.path[:length].decode("utf-8")
+    current_path = path.path.get(str)[:length]
     eh.ui.Echo(current_path, eh.ECHO_DEFAULT)
     
 if __name__ == "__main__":

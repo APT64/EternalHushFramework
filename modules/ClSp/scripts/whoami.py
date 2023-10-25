@@ -17,9 +17,9 @@ def main(args):
     
     username = eh.data.Struct(USERNAME)
     username.from_bytes(eh.crypto.DecryptAesData(session_key, next_iv, encrypted_username))
-    length = int.from_bytes(username.username_length, "little")
+    length = username.username_length.get(int)
     
-    user = username.username[:length].decode("utf-8")
+    user = username.username.get(str)[:length]
     eh.ui.Echo(user, eh.ECHO_DEFAULT)
     eh.ui.SetEnv("CLSP_USER", user)
     

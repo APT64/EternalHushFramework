@@ -17,9 +17,9 @@ def main(args):
     
     output = eh.data.Struct(OUTPUT)
     output.from_bytes(eh.crypto.DecryptAesData(session_key, next_iv, encrypted_out))
-    length = int.from_bytes(output.output_length, "little")
+    length = output.output_length.get(int)
     
-    text_output = output.output[:length].decode("cp866")
+    text_output = output.output.get(str, enc="cp866")[:length]
     eh.ui.Echo(text_output, eh.ECHO_DEFAULT)
     
 if __name__ == "__main__":

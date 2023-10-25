@@ -27,20 +27,20 @@ def main(args):
     file_info = eh.data.Struct(FILEINFO)
     file_info.from_bytes(eh.crypto.DecryptAesData(session_key, next_iv, file_info_encrypted))
    
-    file_size = int.from_bytes(file_info.file_size, "little")
-    part_count = int.from_bytes(file_info.part_count, "little")
-    
+    file_size = file_info.file_size.get(int)
+    part_count = file_info.part_count.get(int)
+
     file_buffer = b""
     for i in range(part_count):
         filepart_encrypted = eh.net.TcpRecv(connection, 4096)
         filepart = eh.data.Struct(FILEPART)
         filepart.from_bytes(eh.crypto.DecryptAesData(session_key, next_iv, filepart_encrypted))
         
-        part_size = int.from_bytes(filepart.part_length, "little")
+        part_size = filepart.part_length.get(int)
         if part_size != 4094:
-            file_buffer += filepart.file_part[:part_size]
+            file_buffer += filepart.file_part.get()[:part_size]
         else:
-            file_buffer += filepart.file_part
+            file_buffer += filepart.file_part.get()
     
     try:
         with open(dest_file, "wb+") as f:

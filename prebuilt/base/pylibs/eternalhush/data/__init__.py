@@ -1,5 +1,6 @@
 from eternalhush.exception import *
 import _eternalhush
+import binascii
 
 class Struct(object):
     struct_data = 0
@@ -18,7 +19,6 @@ class Struct(object):
         self.struct_data = bytearray(b"\x00" * self.struct_size)
         
     def __setattr__(self, attrname, value):
-
         if attrname in self._definition.keys():
             self.__dict__[attrname].set(value)
             offset = 0
@@ -59,11 +59,8 @@ class Struct(object):
     def __getattribute__(self, attrname):
         attr = object.__getattribute__(self, attrname)
         if isinstance(attr, Field):
-            return self.__dict__[attrname].get()
+            return self.__dict__[attrname]
         return attr
-    
-    def equal(self, attr, other):
-        return self.__dict__[attr] == other
     
     def __sizeof__(self):
         return self.struct_size
@@ -74,6 +71,7 @@ class Struct(object):
 
 class Field(object):
     field_size = 0
+    text_encoding = "utf-8"
     
     def __init__(self, size):
         self.field_size = size
@@ -88,6 +86,12 @@ class Field(object):
         elif isinstance(other, int):
             return int.from_bytes(self._item, byteorder="big") == other
                 
+    def __str__(self):
+        if isinstance(self._item, int) or isinstance(self._item, str):
+            return str(self._item)
+        return self._item.decode("utf-8")
+            
+    
     def set(self, value):
         if isinstance(value, bytes):
             self._item = value[:self.field_size]
@@ -100,7 +104,28 @@ class Field(object):
         else:
             raise Exception("Struct field must be of type int, bytes or str")
             
-    def get(self):
+    def get(self, tp=None, base=10, ord="little", enc="utf-8"):
+        if tp == int:
+            if isinstance(self._item, bytes) or isinstance(self._item, bytearray):
+                return int.from_bytes(self._item, ord)
+            return int(self._item, base)
+            
+        elif tp == bytes:
+            if isinstance(self._item, int):
+                return self._item.to_bytes(filed_size, ord)    
+            if isinstance(self._item, bytes) or isinstance(self._item, bytearray):
+                return bytes(self._item)
+            return bytes(self._item, enc)
+                
+        elif tp == bytearray:
+            if isinstance(self._item, int):
+                return bytearray(self._item.to_bytes(filed_size, ord))
+            if isinstance(self._item, bytes) or isinstance(self._item, bytearray):
+                return bytearray(self._item)
+            return bytearray(self._item, enc)
+        elif tp == str:
+            if isinstance(self._item, int) or isinstance(self._item, str):
+                return str(self._item, encoding=enc)
+            return self._item.decode(enc)
+
         return self._item
-        
-        
