@@ -2,8 +2,9 @@
 #include <iostream>
 #include <filesystem>
 #include <structs.h>
+#include <Filter.h>
 
-ULONG GetFile(PUCHAR dataBlob, LPCSTR filePath)
+ULONG GetFile(PUCHAR &dataBlob, LPCSTR filePath)
 {
     BOOL bErrorFlag = FALSE;
     DWORD dwBytesReaded = 0;
@@ -29,10 +30,6 @@ ULONG GetFile(PUCHAR dataBlob, LPCSTR filePath)
         &dwBytesReaded,
         NULL);
 
-    char buf[256];
-    sprintf(buf, "0x%llx", dataBlob);
-    MessageBoxA(0, buf, 0, 0);
-
     CloseHandle(hFile);
 
     return dataSz;
@@ -50,32 +47,29 @@ static inline ULONG part_count(ULONG buffer_size) {
 std::vector<FILEPART> split_file(PUCHAR buffer, int size) {
     std::vector<FILEPART> array;
     int offset = 0;
+    int _size = size;
+
     for (int i = 0; i < part_count(size); i++)
-    {
-        FILEPART fp = { 0 };
-        if (size - 4094 >= 0)
+    {   
+        char buf[256];
+
+        FILEPART fp;
+        if (_size - 4094 >= 0)
         {
             memcpy(fp.file_part, buffer + offset, 4094);
             fp.part_length = 4094;
             array.push_back(fp);
-            size -= 4094;
+            _size -= 4094;
             offset += 4094;
-
-            char buf[256];
-            sprintf(buf, "ostalos %d pt %d", size, i);
-            MessageBoxA(0, buf, 0, 0);
         }
         else
         {
-            char buf[256];
-            sprintf(buf, "ostalos %d pt %d", size, i);
-            MessageBoxA(0, buf, 0, 0);
-            memcpy(fp.file_part, buffer + offset, size);
-            fp.part_length = size;
+            memcpy(fp.file_part, buffer + offset, _size);
+            fp.part_length = _size;
             array.push_back(fp);
+            return array;
         }
     }
-    return array;
 }
 
 extern "C" __declspec(dllexport) ULONG ModuleEntrypoint(MODULE_CONTEXT ctx) {

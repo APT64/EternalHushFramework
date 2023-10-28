@@ -4,8 +4,8 @@ import os
 
 FILEINFO = {
     "part_count": eh.SHORT,
-    "file_size": eh.SHORT,
-    "padding": 12
+    "file_size": eh.LONG,
+    "padding": 10
 }
 
 FILEPART = {
@@ -29,6 +29,8 @@ def main(args):
    
     file_size = file_info.file_size.get(int)
     part_count = file_info.part_count.get(int)
+
+    eh.ui.Echo("File size " + str(file_size) + " bytes", eh.ECHO_DEFAULT)
 
     file_buffer = b""
     for i in range(part_count):

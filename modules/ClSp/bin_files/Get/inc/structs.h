@@ -20,6 +20,6 @@ typedef struct {
 
 typedef struct {
 	USHORT part_count;
-	USHORT file_size;
-	char padding[12];
+	ULONG file_size;
+	char padding[10];
 }FILEINFO, * PFILEINFO;

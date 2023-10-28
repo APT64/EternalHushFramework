@@ -6,8 +6,8 @@ import time
 
 FILEINFO = {
     "part_count": eh.SHORT,
-    "file_size": eh.SHORT,
-    "padding": 12
+    "file_size": eh.LONG,
+    "padding": 10
 }
 
 FILEPART = {
@@ -39,6 +39,7 @@ def main(args):
     
     file_info = eh.data.Struct(FILEINFO)
     file_info.part_count = len(file_part_list)
+    print(len(content))
     file_info.file_size = len(content)
     
     encrypted_fileinfo = eh.crypto.EncryptAesData(session_key, next_iv, file_info.data())
