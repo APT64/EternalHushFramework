@@ -49,3 +49,13 @@ int TcpClient::datarecv(LPVOID data, ULONG size) {
 	}
 	return recv_bytes;
 }
+
+int TcpClient::datarecvall(LPVOID data, ULONG size) {
+	int recv_bytes = recv(connection->socket, (char*)data, size, 0x8);
+	if (recv_bytes == SOCKET_ERROR)
+	{
+		PyErr_SetString(PyExc_ConnectionError, "Failed to receive data");
+		PyErr_Print();
+	}
+	return recv_bytes;
+}

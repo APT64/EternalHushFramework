@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+
+<Module name='SiNi'>
+	<Command name='gen_scldr' provider='gen_scldr.py' dependency='*' type='script'>
+		<Description>Opens and exports a direct connection to ClingySpider Implant</Description>
+		<Argument name='dll' type='string' >
+			<Description>Implant listening host</Description>
+		</Argument>
+		<Argument name='arch' type='string'>
+			<Description>Dll's architecture (WIN64,WIN32)</Description>
+		</Argument>
+		<Argument name='export' type='string' optional='true'>
+			<Description>Name of export function DEFAULT=RemoteCall</Description>
+		</Argument>
+		<Argument name='out' type='string' optional='true'>
+			<Description>Path to output .bin file</Description>
+		</Argument>
+		<Argument name='exitfunc' type='string' optional='true'>
+			<Description>Shellcode exit function (thread,process) DEFAULT=thread</Description>
+		</Argument>
+		<Argument name='nocleanup' type='flag' optional='true'>
+			<Description>Dont perform cleanup of dll after execution DllMain</Description>
+		</Argument>
+	</Command>
+	<Command name='hostprocess' provider='hostprocess.py' dependency='*' type='script'>
+		<Description>Spawn local host process to inject dll/shellcode</Description>
+		<Argument name='mode' type='string'>
+			<Description>Spawn mode (sleep,alertable_sleep,shellcode,dll)</Description>
+		</Argument>
+		<Argument name='bin' type='string' optional='true'>
+			<Description>Target shellcode/dll</Description>
+		</Argument>
+		<Argument name='arch' type='string'>
+			<Description>Process architecture (WIN64,WIN32)</Description>
+		</Argument>
+		<Argument name='export' type='string' optional='true'>
+			<Description>Name of export function</Description>
+		</Argument>
+		<Argument name='ordinal' type='int' optional='true'>
+			<Description>Ordinal of export function</Description>
+		</Argument>
+		<Argument name='timeout' type='int' optional='true'>
+			<Description>Time after which hostprocess will be terminated</Description>
+		</Argument>
+	</Command>
+</Module>

@@ -4,6 +4,9 @@
 #include <vector>
 #include <string>
 
+#define HANDLER_DISABLED
+#define BREAK_EXECUTION 0xFFFFFFFF
+
 std::vector<Connection*> connection_list;
 
 PyObject* create_new_connection(PyObject* self, PyObject* args) {
@@ -25,6 +28,25 @@ PyObject* create_new_connection(PyObject* self, PyObject* args) {
 	Py_RETURN_NONE;
 }
 
+PyObject* add_exception_handler(PyObject* self, PyObject* args) {
+	unsigned char* mod_name, *func_name;
+	int conn_id;
+	PyArg_ParseTuple(args, "iss", &conn_id , &mod_name, &func_name);
+
+	for (int i = 0; i < connection_list.size(); i++)
+	{
+		if (connection_list.at(i)->id == conn_id) {
+	//		PyObject *handler_obj = PyImport_ImportModule((const char*)mod_name);
+			handler h;
+			h.main_name = (char*)func_name;
+			h.module_name = (char*)mod_name;
+			connection_list.at(i)->handler_list.push_back(h);
+		}
+	}
+
+	Py_RETURN_NONE;
+}
+
 PyObject* tcp_send(PyObject* self, PyObject* args) {
 	int conn_id, send_bytes;
 	Py_buffer buffer;
@@ -36,6 +58,7 @@ PyObject* tcp_send(PyObject* self, PyObject* args) {
 			send_bytes = TcpClient(connection_list.at(i)).datasend(buffer.buf, buffer.len);
 		}
 	}
+	PyBuffer_Release(&buffer);
 	return PyLong_FromLong(send_bytes);
 }
 
@@ -44,11 +67,93 @@ PyObject* tcp_recv(PyObject* self, PyObject* args) {
 	unsigned char* c_buffer;
 	PyArg_ParseTuple(args, "ii", &conn_id, &packet_len);
 	c_buffer = (unsigned char*)VirtualAlloc(0, packet_len, MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE);
+	PyObject* retn = 0;
+	PyObject* retn_size = 0;
+
 	for (int i = 0; i < connection_list.size(); i++)
 	{
 		if (connection_list.at(i)->id == conn_id) {
-			TcpClient(connection_list.at(i)).datarecv(c_buffer, packet_len);
+			auto current_conn = connection_list.at(i);
+			auto recv_bytes = TcpClient(current_conn).datarecv(c_buffer, packet_len);
+			if (recv_bytes < 0) return PyLong_FromLong(-1);
+			retn = PyByteArray_FromStringAndSize((const char*)c_buffer, recv_bytes);
+
+#ifndef HANDLER_DISABLED
+			for (int j = 0; j < current_conn->handler_list.size(); j++)
+			{
+				PyObject* handler_obj = PyImport_ImportModule((const char*)current_conn->handler_list.at(j).module_name);
+				PyObject* handler_func = PyObject_GetAttrString(handler_obj, current_conn->handler_list.at(j).main_name);
+				if (!PyCallable_Check(handler_func) || !handler_func || !handler_obj)
+				{
+					PyErr_SetString(PyExc_RuntimeError, "Handler function is not callable");
+					PyErr_Print();
+					Py_RETURN_NONE;
+				}
+
+		 		PyObject* return_data = PyObject_CallFunctionObjArgs(handler_func, retn, retn_size);
+				int islong = PyLong_Check(return_data);
+				if (islong && PyLong_AsLong(return_data) == BREAK_EXECUTION)
+				{
+					MessageBoxA(0, 0, 0, 0);
+					Py_RETURN_NONE;
+				}
+				
+			}
+#endif
 		}
 	}
-	return PyByteArray_FromStringAndSize((const char*)c_buffer, packet_len);
+
+	if (!retn)
+	{
+		Py_RETURN_NONE;
+	}
+	VirtualFree(c_buffer, 0, MEM_RELEASE);
+	return retn;
+}
+
+PyObject* tcp_recvall(PyObject* self, PyObject* args) {
+	int conn_id, packet_len;
+	unsigned char* c_buffer;
+	PyArg_ParseTuple(args, "ii", &conn_id, &packet_len);
+	c_buffer = (unsigned char*)VirtualAlloc(0, packet_len, MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE);
+	PyObject* retn = 0;
+	PyObject* retn_size = 0;
+
+	for (int i = 0; i < connection_list.size(); i++)
+	{
+		if (connection_list.at(i)->id == conn_id) {
+			auto current_conn = connection_list.at(i);
+			auto recv_bytes = TcpClient(current_conn).datarecvall(c_buffer, packet_len);
+			if (recv_bytes < 0) return PyLong_FromLong(-1);
+			retn = PyByteArray_FromStringAndSize((const char*)c_buffer, recv_bytes);
+#ifndef HANDLER_DISABLED
+			for (int j = 0; j < current_conn->handler_list.size(); j++)
+			{
+				PyObject* handler_obj = PyImport_ImportModule((const char*)current_conn->handler_list.at(j).module_name);
+				PyObject* handler_func = PyObject_GetAttrString(handler_obj, current_conn->handler_list.at(j).main_name);
+				if (!PyCallable_Check(handler_func) || !handler_func || !handler_obj)
+				{
+					PyErr_SetString(PyExc_RuntimeError, "Handler function is not callable");
+					PyErr_Print();
+					Py_RETURN_NONE;
+				}
+				PyObject* return_data = PyObject_CallFunctionObjArgs(handler_func, retn, retn_size);
+				int islong = PyLong_Check(return_data);
+				if (islong && PyLong_AsLong(return_data) == BREAK_EXECUTION)
+				{
+					MessageBoxA(0, 0, 0, 0);
+					Py_RETURN_NONE;
+				}
+
+			}
+#endif
+		}
+	}
+
+	if (!retn)
+	{
+		Py_RETURN_NONE;
+	}
+	VirtualFree(c_buffer, 0, MEM_RELEASE);
+	return retn;
 }

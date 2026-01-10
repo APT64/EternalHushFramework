@@ -1,8 +1,5 @@
-import eternalhush
+import eternalhush as eh
 import os
 
-def main(argv):
-    eternalhush.ui.Run("!banner", eternalhush.RUN_NORMAL)
-    
-if __name__ == "__main__":
-    main(sys.argv)
+def main(args):
+    eh.ui.Run("!banner -nolog", eh.RUN_NORMAL)

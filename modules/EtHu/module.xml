@@ -1,6 +1,30 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 
 <Module name='EtHu'>
-	<Command name='banner' provider='banner.py' dependency='*' type='script'>
+	<Command name='banner' provider='banner.py' dependency='*' type='script'></Command>
+	<Command name='winerror' provider='get_winerror.py' dependency='*' type='script'>
+		<Description>Print windows error name</Description>
+		<Argument name='code' type='string'>
+			<Description>Error code (hex)</Description>
+		</Argument>
+	</Command>
+	<Command name='pymodule' provider='install_module.py' dependency='*' type='script'>
+		<Description>Install python module</Description>
+		<Argument name='install' type='string' optional='true'>
+			<Description>Install module</Description>
+		</Argument>
+		<Argument name='remove' type='string' optional='true'>
+			<Description>Remove module</Description>
+		</Argument>
+		<Argument name='list' type='flag' optional='true'>
+			<Description>List installed modules</Description>
+		</Argument>
+	</Command>
+	<Command name='lasterror' provider='.set LAST_ERROR %%' dependency='*' type='alias'></Command>
+	<Command name='openssl' provider='openssl.py' dependency='*' type='script'>
+		<Description>Start openssl.exe</Description>
+		<Argument name='args' type='string'>
+			<Description>Arguments to 'openssl.exe'</Description>
+		</Argument>
 	</Command>
 </Module>

@@ -39,23 +39,21 @@ def nameprep(label):
 
     # Check bidi
     RandAL = [stringprep.in_table_d1(x) for x in label]
-    for c in RandAL:
-        if c:
-            # There is a RandAL char in the string. Must perform further
-            # tests:
-            # 1) The characters in section 5.8 MUST be prohibited.
-            # This is table C.8, which was already checked
-            # 2) If a string contains any RandALCat character, the string
-            # MUST NOT contain any LCat character.
-            if any(stringprep.in_table_d2(x) for x in label):
-                raise UnicodeError("Violation of BIDI requirement 2")
-
-            # 3) If a string contains any RandALCat character, a
-            # RandALCat character MUST be the first character of the
-            # string, and a RandALCat character MUST be the last
-            # character of the string.
-            if not RandAL[0] or not RandAL[-1]:
-                raise UnicodeError("Violation of BIDI requirement 3")
+    if any(RandAL):
+        # There is a RandAL char in the string. Must perform further
+        # tests:
+        # 1) The characters in section 5.8 MUST be prohibited.
+        # This is table C.8, which was already checked
+        # 2) If a string contains any RandALCat character, the string
+        # MUST NOT contain any LCat character.
+        if any(stringprep.in_table_d2(x) for x in label):
+            raise UnicodeError("Violation of BIDI requirement 2")
+        # 3) If a string contains any RandALCat character, a
+        # RandALCat character MUST be the first character of the
+        # string, and a RandALCat character MUST be the last
+        # character of the string.
+        if not RandAL[0] or not RandAL[-1]:
+            raise UnicodeError("Violation of BIDI requirement 3")
 
     return label
 
@@ -88,7 +86,7 @@ def ToASCII(label):
         raise UnicodeError("label empty or too long")
 
     # Step 5: Check ACE prefix
-    if label.startswith(sace_prefix):
+    if label[:4].lower() == sace_prefix:
         raise UnicodeError("Label starts with ACE prefix")
 
     # Step 6: Encode with PUNYCODE
@@ -103,6 +101,16 @@ def ToASCII(label):
     raise UnicodeError("label empty or too long")
 
 def ToUnicode(label):
+    if len(label) > 1024:
+        # Protection from https://github.com/python/cpython/issues/98433.
+        # https://datatracker.ietf.org/doc/html/rfc5894#section-6
+        # doesn't specify a label size limit prior to NAMEPREP. But having
+        # one makes practical sense.
+        # This leaves ample room for nameprep() to remove Nothing characters
+        # per https://www.rfc-editor.org/rfc/rfc3454#section-3.1 while still
+        # preventing us from wasting time decoding a big thing that'll just
+        # hit the actual <= 63 length limit in Step 6.
+        raise UnicodeError("label way too long")
     # Step 1: Check for ASCII
     if isinstance(label, bytes):
         pure_ascii = True
@@ -121,7 +129,7 @@ def ToUnicode(label):
         except UnicodeError:
             raise UnicodeError("Invalid character in IDN label")
     # Step 3: Check for ACE prefix
-    if not label.startswith(ace_prefix):
+    if not label[:4].lower() == ace_prefix:
         return str(label, "ascii")
 
     # Step 4: Remove ACE prefix
@@ -194,7 +202,7 @@ class Codec(codecs.Codec):
             # XXX obviously wrong, see #3232
             input = bytes(input)
 
-        if ace_prefix not in input:
+        if ace_prefix not in input.lower():
             # Fast path
             try:
                 return input.decode('ascii'), len(input)

