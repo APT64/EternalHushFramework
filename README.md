@@ -1,61 +1,116 @@
-<div id="header" align="center">
-  <h1>
-    EternalHush Framework
-  </h1>
-  <p align="center">
-     <img src="https://img.shields.io/github/stars/APT64/EternalHushFramework?label=Stars" alt="Stars">
-     <img src="https://img.shields.io/badge/1.0.0.0-red?label=Version" alt="Version">
-     <img src="https://img.shields.io/badge/windows-orange?label=Platfom" alt="Platfom">
-     <img src="https://img.shields.io/badge/MIT-green?label=License" alt="License">
-  </p>
+
+<div  id="header"  align="center">
+<h1>
+EternalHush Framework 2.X.X.X
+</h1>
+<p  align="center">
+<img  src="https://img.shields.io/github/stars/APT64/EternalHushFramework?label=Stars"  alt="Stars">
+<img  src="https://img.shields.io/badge/2.0.0.0-red?label=Version"  alt="Version">
+<img  src="https://img.shields.io/badge/windows-orange?label=Platfom"  alt="Platfom">
+<img  src="https://img.shields.io/badge/MIT-green?label=License"  alt="License">
+</p>
 </div>
 
-## About project
+  
+## :warning:HUGE WARNING:warning:
+The project is in dire need of support from outside enthusiasts and cannot be maintained by me alone due to its complexity and large scope. Please actively cooperate in its development if possible.
+
+##  About project
+
+  
 
 EternalHush Framework is a new open source project that is an advanced C&C framework. Designed specifically for Windows operating systems, it allows users to easily extend its functionality by developing plugins in Python. This is achieved through its own Python API.
 The EternalHush Framework also features an intuitive and user-friendly interface that simplifies the process of controlling and collecting data from infected operating systems.
 
-<img src="https://i.ibb.co/QbVpBY1/1.png" />
+
+
+<img  src="https://i.ibb.co/Fkmqm4bW/Screenshot-123131231231.png"  />
+
+  
 
 I will continue this project until I get tired of updating it. This project is also being created as a universal platform for my next personal cybersecurity experiments for Windows. It is very important for me to get feedback, so please actively write what you want to add or improve in this project.
 
+
 The project is now in very early stages of development and is posted so that progress can be tracked.
 
-## Features
+  
+
+##  Features
+
+  
 
 - API for Python plugins
-- Easy integration of external modules
+- Easy integration of external modules (python or java(for GUI))
 - Intuitive GUI
 - Automatic build script
 
-## Building
+### Built-in implant features 
+- Indirect syscall with stackspoofing
+- Bind TCP / Reverse HTTP(S) connection
+- Interacting with Python API
+- Uses two stages (loader+main part)
+- Partially uses WMI to interact with OS
+- Focused on data collection
+- More and more... (run .help when connected to target)
+  
+
+##  Building
+
+  
 
 ```console
+
 $ git clone https://github.com/APT64/EternalHushFramework.git
 $ cd EternalHushFramework
 $ pip install -r requirements.txt
-$ python compile.py build
+$ python devcli.py
+
 ```
 
-This script will automatically download maven and cmake for building and build the project in the output directory ```build```
+
+###  Creating config
+
 ```console
-$ cd build && java -jar EternalHushFramework.jar
+ $ create_build_conf my_config_name
+ $ use_build_conf my_config_name
+ $ set_build_codename my_build_codename
+ $ set_build_version my_build_version
+ $ set_build_uid my_build_uid 				//you can use 'uidgen' to generate uid
+ $ apply_build_conf
+```
+This sequence of commands will allow you to create your own config with build information.
+
+###  Building framework
+To build the framework you only need to run one command:
+```console
+ $ build
+```
+
+This script will automatically download maven and cmake for building and build the project in the output directory ```build```, but to run framework you can use the command:
+
+```console
+
+$ run_build
+
 ```
 Read more in [wiki](https://github.com/APT64/EternalHushFramework/wiki)
 
-## Known issues
-The following bugs will be fixed in the next update:
-- Impossible to return and check errors in modules
+##  Documentation
 
-## Documentation
+  
 
 [Project wiki](https://github.com/APT64/EternalHushFramework/wiki)
 
-## Developers
+  
 
-- [APT64](https://github.com/APT64)
+##  Developers
 
-## License
+  
 
+-  [APT64](https://github.com/APT64)
+
+  
+
+##  License
 EternalHush is distributed under the MIT License.
 CPython is distributed under the PSF License.
