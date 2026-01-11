@@ -767,5 +767,7 @@ output64/
 output32/
 target/
 xml_configs/
+
+!liquidlnf.jar
 *.zip
 # End of https://www.toptal.com/developers/gitignore/api/cmake,ninja,python,visualstudio,intellij,java,maven,git
