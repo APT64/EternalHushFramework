@@ -54,7 +54,9 @@ The project is now in very early stages of development and is posted so that pro
 - More and more... (run .help when connected to target)
 - Reflective DLL loading
 - Generate shellcode from DLL
-  
+
+- Full command list screenshot here:
+<img  src="https://i.ibb.co/Y7yTRCy4/Screenshot-6.png"  />
 
 ##  Building
 
