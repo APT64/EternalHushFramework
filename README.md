@@ -52,6 +52,8 @@ The project is now in very early stages of development and is posted so that pro
 - Partially uses WMI to interact with OS
 - Focused on data collection
 - More and more... (run .help when connected to target)
+- Reflective DLL loading
+- Generate shellcode from DLL
   
 
 ##  Building
