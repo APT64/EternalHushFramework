@@ -4,6 +4,7 @@ import eternalhush.console.OperationConsole;
 import eternalhush.events.ConsoleEventListener;
 import eternalhush.events.ConsoleEventSource;
 import eternalhush.gui.IconLoader;
+import eternalhush.main.GlobalLogger;
 import eternalhush.main.GlobalVariables;
 import eternalhush.manager.CommonModule;
 
@@ -51,8 +52,9 @@ public class CommandLogViewerPanel extends JPanel {
             daDefaultTableModel.setColumnIdentifiers(columnNames);
             setColumnsSize();
             for (CmdLogParser.ParsedLogEntry log_entry : parsedLogEntries) {
-
-                    String module_name = null;
+                try {
+                    if (log_entry == null || logReader == null) continue;
+                    String module_name = "";
                     if (logReader.isTaskRunning(log_entry.console_id, log_entry.task_id)) {
                         log_entry.result = 1; //task is running (fix)
                         log_entry.cmd_name = fastCmdFromStr(log_entry.full_cmd_name);
@@ -66,7 +68,9 @@ public class CommandLogViewerPanel extends JPanel {
                         }
                         daDefaultTableModel.addRow(new Object[]{getStatusIcon(log_entry.result), log_entry.task_id, log_entry.full_cmd_name, module_name.toLowerCase(), log_entry.timestamp});
                     }
-
+                }
+                catch (Exception e){
+                }
             }
         }
     }

@@ -767,6 +767,7 @@ output64/
 output32/
 target/
 xml_configs/
+.idea/
 
 !liquidlnf.jar
 *.zip

@@ -21,7 +21,7 @@
                 <configuration>
                     <archive>
                         <manifest>
-                            <mainClass>eternalhush.main.KxoZNIMXpJt89uDD</mainClass>
+                            <mainClass>eternalhush.main.MainLauncher</mainClass>
                             <addClasspath>true</addClasspath>
                             <classpathPrefix>libs</classpathPrefix>
                         </manifest>

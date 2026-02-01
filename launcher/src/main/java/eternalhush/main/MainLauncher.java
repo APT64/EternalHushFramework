@@ -1,22 +1,16 @@
 package eternalhush.main;
 import com.birosoft.liquid.LiquidLookAndFeel;
 import eternalhush.gui.*;
-import eternalhush.gui.WindowConstants;
-
-import eternalhush.events.StatusEventSource;
 
 import eternalhush.manager.ModuleLoader;
-import eternalhush.userinterface.GateWay;
 
 import javax.swing.*;
 import javax.swing.plaf.FontUIResource;
 import java.awt.*;
 import java.io.IOException;
-import java.util.logging.FileHandler;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
-public class KxoZNIMXpJt89uDD extends JWindow {
+public class MainLauncher extends JWindow {
 
     protected EternalHushWindow operationWindow;
     protected EternalHushWindow settingsWindow;
@@ -24,7 +18,7 @@ public class KxoZNIMXpJt89uDD extends JWindow {
     protected ModuleLoader moduleLoader;
     protected static OperationPane operationPane;
 
-    public static final Logger LOGGER = Logger.getLogger(KxoZNIMXpJt89uDD.class.getName());
+    public static final Logger LOGGER = Logger.getLogger(MainLauncher.class.getName());
 
     public static void main(String args[]) throws IOException, InterruptedException {
         GlobalLogger.log("Starting java application");
