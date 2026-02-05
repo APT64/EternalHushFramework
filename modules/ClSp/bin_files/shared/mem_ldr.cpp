@@ -12,7 +12,14 @@
 #include "cutils.h"
 #include <syslib.hpp>
 #include <Psapi.h>
-extern syslib* psyslib;
+#include <module_context.h>
+
+#ifdef CLSP_MAIN_PROJECT
+    extern syslib* psyslib;
+#else
+extern PMODULE_CONTEXT pCtx;
+#define psyslib pCtx->psyslib 
+#endif
 
 static inline uintptr_t
 AlignValueDown(uintptr_t value, uintptr_t alignment) {

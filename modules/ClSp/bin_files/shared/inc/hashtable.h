@@ -1073,3 +1073,5 @@
 #define WHASH_GdiplusShutdown 0x5e587e0
 #define HASH_WinHttpAddRequestHeaders 0xc9be023
 #define WHASH_WinHttpAddRequestHeaders 0x91c210
+#define HASH_RegisterExt 0xaf4d2f4
+#define WHASH_RegisterExt 0x5626100

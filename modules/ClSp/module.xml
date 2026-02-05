@@ -145,8 +145,8 @@
 			<Description>SSL certificate (used with 'https' protocol)</Description>
 		</Argument>
 	</Command>
-	<Command name='cs_response_timeout' provider='.set MIBA_TASK_RESULT_TIMEOUT %%' dependency='clsp' type='alias'></Command>
-	<Command name='cs_task_timeout' provider='.set MIBA_GET_TASK_TIMEOUT %%' dependency='clsp' type='alias'></Command>
+	<Command name='cs_response_timeout' provider='.set CLSP_TASK_RESULT_TIMEOUT %%' dependency='clsp' type='alias'></Command>
+	<Command name='cs_task_timeout' provider='.set CLSP_GET_TASK_TIMEOUT %%' dependency='clsp' type='alias'></Command>
 	<Command name='dir' provider='dir.py' dependency='clsp' type='script'>
 		<Description>Lists files and dirs</Description>
 		<Argument name='path' type='string' optional='true'>

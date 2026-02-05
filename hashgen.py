@@ -79,4 +79,6 @@ hhash("GdiplusShutdown")
 
 hhash("WinHttpAddRequestHeaders")
 
+hhash("RegisterExt")
+
 check_collision()

@@ -25,14 +25,14 @@ def main(args):
         else:
             handler.nosurvey = False
         if args.survey_rescan == None:
-            eh.ui.SetEnv("MIBA_SURVEY_RESCAN_TARGET", 'ask')
+            eh.ui.SetEnv("CLSP_SURVEY_RESCAN_TARGET", 'ask')
         elif args.survey_rescan.lower() == 'yes':
-            eh.ui.SetEnv("MIBA_SURVEY_RESCAN_TARGET", 'true')
+            eh.ui.SetEnv("CLSP_SURVEY_RESCAN_TARGET", 'true')
         elif args.survey_rescan.lower() == 'no':
-            eh.ui.SetEnv("MIBA_SURVEY_RESCAN_TARGET", 'false')
+            eh.ui.SetEnv("CLSP_SURVEY_RESCAN_TARGET", 'false')
         else:
             eh.ui.Echo(f"Unkown argument '-survey_rescan' value '{args.survey_rescan}', switching to 'yes'", eh.ECHO_WARNING)
-            eh.ui.SetEnv("MIBA_SURVEY_RESCAN_TARGET", 'true')
+            eh.ui.SetEnv("CLSP_SURVEY_RESCAN_TARGET", 'true')
         server.set_handler(handler)
         server.start()
 
@@ -55,14 +55,14 @@ def main(args):
         else:
             handler.nosurvey = False
         if args.survey_rescan == None:
-            eh.ui.SetEnv("MIBA_SURVEY_RESCAN_TARGET", 'ask')
+            eh.ui.SetEnv("CLSP_SURVEY_RESCAN_TARGET", 'ask')
         elif args.survey_rescan.lower() == 'yes':
-            eh.ui.SetEnv("MIBA_SURVEY_RESCAN_TARGET", 'true')
+            eh.ui.SetEnv("CLSP_SURVEY_RESCAN_TARGET", 'true')
         elif args.survey_rescan.lower() == 'no':
-            eh.ui.SetEnv("MIBA_SURVEY_RESCAN_TARGET", 'false')
+            eh.ui.SetEnv("CLSP_SURVEY_RESCAN_TARGET", 'false')
         else:
             eh.ui.Echo(f"Unkown argument '-survey_rescan' value '{args.survey_rescan}', switching to 'yes'", eh.ECHO_WARNING)
-            eh.ui.SetEnv("MIBA_SURVEY_RESCAN_TARGET", 'true')
+            eh.ui.SetEnv("CLSP_SURVEY_RESCAN_TARGET", 'true')
         server.set_handler(handler)
         server.start()
 
