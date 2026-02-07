@@ -8,7 +8,7 @@ def clear_env(name):
     eh.ui.SetEnv(name, '')
 
 def main(args):
-    eh.ui.Run("!cs_response_timeout 1")
+    eh.ui.Run("!cs_response_timeout 1", eh.RUN_NORMAL)
     api.UserSyscall("NtTerminateProcess", api.GetCurrentProcess(), 0)
     eh.ui.Echo("Implant process terminated", eh.ECHO_GOOD)
 

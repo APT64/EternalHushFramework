@@ -1515,8 +1515,9 @@ NTSTATUS handle_cmd(PMODULE_CONTEXT ctx) {
 			SetLastError(ERROR_PROC_NOT_FOUND);
 			goto FINISH_EXT_REG_REQUEST;
 		}
-		ext_obj = (PEXTENSION_OBJECT)HeapAlloc(GetProcessHeap(), HEAP_ZERO_MEMORY, sizeof(EXTENSION_OBJECT));
+		ext_obj = new EXTENSION_OBJECT;
 		ext_obj->ext_base = (LONGLONG)ext_module->codeBase;
+		
 		((NTSTATUS(*)(PMODULE_CONTEXT, PEXTENSION_OBJECT))ext_init_proc)(ctx, ext_obj);
 
 		for (int i = 0; i < extension_list.size(); i++) {
@@ -1608,13 +1609,14 @@ FINISH_EXT_API_EXECUTION:
 		PACK_GLE_STATUS
 			if (ext_proc_ptr) {
 				try{
-					ext_proc_status = ((NTSTATUS(*)(CommandParser*, ResponseBuilder*))ext_proc_ptr)(parser, builder);
+					AcquireSRWLockExclusive(&gSRWLock);
+					ext_proc_status = ((NTSTATUS(*)(PMODULE_CONTEXT, CommandParser*, ResponseBuilder*))ext_proc_ptr)(ctx, parser, builder);
 				}
 				catch (std::exception&) {
 					ext_proc_status = ERROR_EXCEPTION_IN_RESOURCE_CALL;
 				}
 			}
-			
+		ReleaseSRWLockExclusive(&gSRWLock);
 		builder->add_long(ext_proc_status);
 		STANDART_EPILOGUE
 	}
