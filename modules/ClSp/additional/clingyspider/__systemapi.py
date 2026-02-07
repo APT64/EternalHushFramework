@@ -9,7 +9,7 @@ from additional.clingyspider.structs import *
 from additional.clingyspider.const import *
 import random
 
-def MBSysCreateWorkerContext():
+def CSSysCreateWorkerContext():
     try:
         if _eternalhush.ctxObj.worker_ctx_id == 0:
             #create
@@ -22,8 +22,8 @@ def MBSysCreateWorkerContext():
         #create
     return _eternalhush.ctxObj.worker_ctx_id
 
-def MBSysGetWorkerContext():
+def CSSysGetWorkerContext():
     return _eternalhush.ctxObj.worker_ctx_id
 
-def MBSysDestoryWorkerContext():
+def CSSysDestoryWorkerContext():
     _eternalhush.ctxObj.worker_ctx_id = 0

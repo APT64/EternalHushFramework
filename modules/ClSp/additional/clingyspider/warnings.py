@@ -11,7 +11,7 @@ def ClingySpider_API_wrapper(singlethread):
             if lock_module.lower() != "clsp":
                 raise InvalidApiCall("Cannot call this API outside the module!")
             if singlethread:
-                ctxworkerid = __systemapi.MBSysCreateWorkerContext()
+                ctxworkerid = __systemapi.CSSysCreateWorkerContext()
             return_value = func(*args, **kwargs)
             return return_value
         return wrapper

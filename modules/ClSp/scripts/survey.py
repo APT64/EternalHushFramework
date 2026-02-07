@@ -52,10 +52,10 @@ def run_initialize():
         eh.ui.Echo(f"Adding new target {machine_guid} in database", eh.ECHO_DEFAULT)
         res = cur.execute("INSERT OR IGNORE INTO clingyspider_targets(machine_guid, machine_directory) VALUES (?,?)", (machine_guid, directory_name)) 
         #run_survey_script(machine_guid, directory_name)
-        eh.ui.SetEnv('MIBA_SURVEY_KNOWN_TARGET', 'false')
+        eh.ui.SetEnv('CLSP_SURVEY_KNOWN_TARGET', 'false')
     else:
         eh.ui.Echo(f"Target {machine_guid} already exists in database", eh.ECHO_WARNING)
-        eh.ui.SetEnv('MIBA_SURVEY_KNOWN_TARGET', 'true')
+        eh.ui.SetEnv('CLSP_SURVEY_KNOWN_TARGET', 'true')
         
     con.commit()
     con.close()

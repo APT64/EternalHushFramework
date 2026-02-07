@@ -18,6 +18,9 @@ TASK_UID = _eternalhush.ctxObj.task_uid
 
 STRING = _eternalhush.ctxObj.STRING
 INT = _eternalhush.ctxObj.INT
+WSTRING = _eternalhush.ctxObj.WSTRING
+BYTES = _eternalhush.ctxObj.BYTES
+
 ECHO_DEFAULT = _eternalhush.ctxObj.ECHO_DEFAULT
 ECHO_GOOD = _eternalhush.ctxObj.ECHO_GOOD
 ECHO_ERROR = _eternalhush.ctxObj.ECHO_ERROR

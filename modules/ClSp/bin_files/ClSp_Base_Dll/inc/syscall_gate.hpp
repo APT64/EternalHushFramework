@@ -5,9 +5,6 @@
 #include <vector>
 #include <cmd_parser.hpp>
 
-#define PACK_NTSTATUS_STATUS	  builder.add_byte(bResult); \
-						  builder.add_int(status);
-
 #define HANDLE_SYSCALL_RESULT if (NT_SUCCESS(status)) bResult = 1;
 extern syslib* psyslib;
 

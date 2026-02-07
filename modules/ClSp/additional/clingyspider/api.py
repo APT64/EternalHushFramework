@@ -10,7 +10,7 @@ from additional.clingyspider.structs import *
 from additional.clingyspider.const import *
 
 def IsX64():
-    if eh.ui.GetEnv("MIBA_ARCH") == "X64":
+    if eh.ui.GetEnv("CLSP_ARCH") == "X64":
         return 1
     return 0
     
@@ -71,7 +71,7 @@ def CloseHandle(handle):
 @ClingySpider_API
 def WriteFile(handle, buffer):
     if len(buffer) > 0xffffffffffffffff:
-        eh.ui.Echo("Buffer size too big! (MAX 18446744073709551615 bytes)")
+        eh.ui.Echo("WriteFile: Buffer size too big! (MAX 18446744073709551615 bytes)")
         return
     parser = response_parser.ResponseParser()
     builder = cmd_builder.CommandBuilder()
@@ -319,7 +319,7 @@ def CreateThread(handle, lpstart, lpparam, flags):
 #@UnstableApiCall
 def WmiInitialize():
     parser = response_parser.ResponseParser()
-    data = tasking.call_no_arg(228, workerctx=systemapi.MBSysGetWorkerContext())
+    data = tasking.call_no_arg(228, workerctx=systemapi.CSSysGetWorkerContext())
     if data:
         parser.load_data(data)
         return parser.get_byte()
@@ -335,7 +335,7 @@ def WmiConnect(session_id, srv, user='', passwd='', authority=''):
     builder.add_wstrarg(user)
     builder.add_wstrarg(passwd)
     builder.add_wstrarg(authority)
-    data = tasking.call(builder.build(), workerctx=systemapi.MBSysGetWorkerContext())
+    data = tasking.call(builder.build(), workerctx=systemapi.CSSysGetWorkerContext())
     if data:
         parser.load_data(data)
         return parser.get_byte()
@@ -348,7 +348,7 @@ def WmiQuery(session_id, query):
     builder.set_command(230)
     builder.add_int(session_id)
     builder.add_wstrarg(query)
-    data = tasking.call(builder.build(), workerctx=systemapi.MBSysGetWorkerContext())
+    data = tasking.call(builder.build(), workerctx=systemapi.CSSysGetWorkerContext())
     if data:
         parser.load_data(data)
         return parser.get_byte()
@@ -362,7 +362,7 @@ def WmiExecMethod(session_id, wmi_class, wmi_method):
     builder.add_int(session_id)
     builder.add_wstrarg(wmi_class)
     builder.add_wstrarg(wmi_method)
-    data = tasking.call(builder.build(), workerctx=systemapi.MBSysGetWorkerContext())
+    data = tasking.call(builder.build(), workerctx=systemapi.CSSysGetWorkerContext())
     if data:
         parser.load_data(data)
         return parser.get_byte()
@@ -379,7 +379,7 @@ def WmiParseMethodResult(session_id, filter):
     for i in range(len(filter)):
         builder.add_wstrarg(filter[i])
 
-    data = tasking.call(builder.build(), workerctx=systemapi.MBSysGetWorkerContext())
+    data = tasking.call(builder.build(), workerctx=systemapi.CSSysGetWorkerContext())
     if data:
         format_data = []
         parser.load_data(data)
@@ -416,7 +416,7 @@ def WmiParseResult(session_id, filter):
     for i in range(len(filter)):
         builder.add_wstrarg(filter[i])
 
-    data = tasking.call(builder.build(), workerctx=systemapi.MBSysGetWorkerContext())
+    data = tasking.call(builder.build(), workerctx=systemapi.CSSysGetWorkerContext())
     if data:
         format_data = []
         parser.load_data(data)
@@ -445,7 +445,7 @@ def WmiParseResult(session_id, filter):
 #@UnstableApiCall
 def WmiRelease(session_id):
     parser = response_parser.ResponseParser()
-    data = tasking.call_one_iarg(231, session_id, workerctx=systemapi.MBSysGetWorkerContext())
+    data = tasking.call_one_iarg(231, session_id, workerctx=systemapi.CSSysGetWorkerContext())
     if data:
         parser.load_data(data)
         return parser.get_byte()

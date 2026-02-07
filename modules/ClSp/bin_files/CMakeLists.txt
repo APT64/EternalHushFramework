@@ -1,4 +1,5 @@
 ﻿cmake_minimum_required (VERSION 3.8)
+add_compile_definitions(CLSP_MAIN_PROJECT)
 project(clingyspider)
 
 enable_language(C ASM_NASM)

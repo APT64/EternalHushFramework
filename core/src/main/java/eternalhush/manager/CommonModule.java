@@ -20,6 +20,7 @@ public class CommonModule implements Serializable {
     protected String WorkingDirectory;
 
     public int getCmdCount() {
+        if (CommandList == null) return 0;
         return CommandList.size();
     }
 
