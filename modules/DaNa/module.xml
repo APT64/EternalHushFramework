@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+
+<Module name='DaNa'>
+    <Command name='dana_install' provider='dana_install.py' type='script' dependency='clsp'>
+		<Description>Register DarkNarrator extension</Description>
+        <Argument name='register' type='flag' optional='true'>
+			<Description>Register extension</Description>
+		</Argument>
+        <Argument name='unregister' type='flag' optional='true'>
+			<Description>Unregister extension</Description>
+		</Argument>
+	</Command>
+    <Command name='dana_config' provider='dana_config.py' type='script' dependency='clsp'>
+		<Description>Main DarkNarrator configuration script</Description>
+		<Argument name='set_layer' type='string' optional='true'>
+			<Description>Set functional layer (ThrottleStop, )</Description>
+		</Argument>
+        <Argument name='destroy_layer' type='flag' optional='true'>
+			<Description>Destroy current layer</Description>
+		</Argument>
+	</Command>	
+</Module>

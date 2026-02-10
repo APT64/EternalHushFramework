@@ -331,6 +331,9 @@ class ReverseHttpHandler(ReverseConnectionHandler):
         eh.ui.SetEnv("BUILDNO_MAJOR", build_major, console_id=available_cid)
         eh.ui.SetEnv("BUILDNO_MINOR", build_minor, console_id=available_cid)
 
+        eh.ui.Echo(f"Process ID: {str(implant_info.current_pid.get(int))}", eh.ECHO_DEFAULT, console_id=available_cid)
+        eh.ui.SetEnv("CLSP_PROCESS_ID", str(implant_info.current_pid.get(int)), console_id=available_cid)
+
         eh.ui.SetEnv("HTTP_LISTENER_PORT", str(caller.http_port), console_id=available_cid)
         caller.db_worker.update_db(cookie, caller.session_list[cookie]['key'], caller.session_list[cookie]['iv'], available_cid, caller.session_list[cookie]['watchdog'].time())
         

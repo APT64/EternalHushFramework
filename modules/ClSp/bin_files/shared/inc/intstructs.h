@@ -342,5 +342,25 @@ typedef enum _SYSTEM_INFORMATION_CLASS {
     SystemInterruptInformation = 23,
     SystemExceptionInformation = 33,
     SystemRegistryQuotaInformation = 37,
-    SystemLookasideInformation = 45
+    SystemLookasideInformation = 45,
+    SystemExtendedHandleInformation = 64
 } SYSTEM_INFORMATION_CLASS;
+
+typedef struct _SYSTEM_HANDLE
+{
+    PVOID Object;
+    HANDLE UniqueProcessId;
+    HANDLE HandleValue;
+    ULONG GrantedAccess;
+    USHORT CreatorBackTraceIndex;
+    USHORT ObjectTypeIndex;
+    ULONG HandleAttributes;
+    ULONG Reserved;
+} SYSTEM_HANDLE, * PSYSTEM_HANDLE;
+
+typedef struct _SYSTEM_HANDLE_INFORMATION_EX
+{
+    ULONG_PTR HandleCount;
+    ULONG_PTR Reserved;
+    SYSTEM_HANDLE Handles[1];
+} SYSTEM_HANDLE_INFORMATION_EX, * PSYSTEM_HANDLE_INFORMATION_EX;

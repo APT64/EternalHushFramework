@@ -314,6 +314,9 @@
 		<Argument name='use_handle' type='int' optional='true'>
 			<Description>Use opened handle instead of pid (ignores pid)</Description>
 		</Argument>
+		<Argument name='dana_steal_token' type='flag' optional='true'>
+			<Description>Steal target '-pid' process token (DARKNARRATOR)</Description>
+		</Argument>
 	</Command>
 	<Command name='patchtool' provider='patchtool.py' dependency='clsp' type='script'>
 		<Description>Patch AMSI/ETW/SYSMON</Description>

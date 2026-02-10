@@ -168,10 +168,18 @@ def ParseSTRING64(ptr, handle=None):
 @ClingySpider_API
 def NtCurrentPeb():
     if api.IsX64():
-        pPEB = api.ReadGeneralSegment(PEB64_OFFSETLIST.OFFSET_PEB_SEGMENT, eh.LONG)
+        pPEB = api.ReadGeneralSegment(PEB64_OFFSETLIST.OFFSET_PEB_SEGMENT, eh.LONGLONG)
     else:
-        pPEB = api.ReadGeneralSegment(PEB32_OFFSETLIST.OFFSET_PEB_SEGMENT, eh.LONG)
+        pPEB = api.ReadGeneralSegment(PEB32_OFFSETLIST.OFFSET_PEB_SEGMENT, eh.LONGLONG)
     return pPEB
+
+@ClingySpider_API
+def NtCurrentTeb():
+    if api.IsX64():
+        pTEB = api.ReadGeneralSegment(0x30, eh.LONGLONG)
+    else:
+        pTEB = api.ReadGeneralSegment(0x18, eh.LONGLONG)
+    return pTEB
 
 @ClingySpider_API
 def AllocUNICODE_STRING64(string, handle=None):
