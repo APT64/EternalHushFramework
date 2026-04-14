@@ -21,6 +21,7 @@ typedef struct _IMPLANTINFO {
 	USHORT nt_minor;
 	USHORT buildno_major;
 	USHORT buildno_minor;
+	DWORD current_pid;
 } IMPLANTINFO, * PIMPLANTINFO;
 
 typedef struct _ACTIONINFO {

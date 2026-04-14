@@ -90,6 +90,9 @@ def main(args):
     eh.ui.SetEnv("BUILDNO_MAJOR", build_major)
     eh.ui.SetEnv("BUILDNO_MINOR", build_minor)
 
+    eh.ui.Echo(f"Process ID: {str(implant_info.current_pid.get(int))}", eh.ECHO_DEFAULT)
+    eh.ui.SetEnv("CLSP_PROCESS_ID", str(implant_info.current_pid.get(int)))
+
     eh.ui.Echo("STAGE 2 - Sending base", eh.ECHO_WARNING)
     if not send_base(tcp_connection, implant_info.session_key.get(), hello_response.next_iv.get()):
         return

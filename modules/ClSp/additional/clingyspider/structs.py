@@ -20,7 +20,8 @@ IMPLANT_INFO = {
     "nt_major": eh.SHORT,
     "nt_minor": eh.SHORT,
     "buildno_major": eh.SHORT,
-    "buildno_minor": eh.SHORT
+    "buildno_minor": eh.SHORT,
+    "current_pid": eh.LONG
 }
 
 PAYLOADINFO = {

