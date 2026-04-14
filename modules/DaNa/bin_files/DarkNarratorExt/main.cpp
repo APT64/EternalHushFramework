@@ -16,7 +16,8 @@ static EXTENSION_APIENTRY api_set[] = {
 	{DANA_WRITEVIRTMEM_UID, (LONGLONG)WriteVirtMem},
 	{DANA_SELECT_LAYER_UID, (LONGLONG)SelectLayer},
 	{DANA_FINALIZE_LAYER_UID, (LONGLONG)FinalizeLayer},
-	{DANA_LEAK_OBJECT_UID, (LONGLONG)LeakKernelOb}
+	{DANA_LEAK_OBJECT_UID, (LONGLONG)LeakKernelOb},
+	{DANA_LEAK_MODULE_UID, (LONGLONG)LeakModuleAddr},
 };
 
 extern "C" __declspec(dllexport) NTSTATUS RegisterExt(PMODULE_CONTEXT ctx, PEXTENSION_OBJECT ext_object) {

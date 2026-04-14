@@ -314,12 +314,12 @@
 		<Argument name='use_handle' type='int' optional='true'>
 			<Description>Use opened handle instead of pid (ignores pid)</Description>
 		</Argument>
-		<Argument name='dana_steal_token' type='flag' optional='true'>
-			<Description>Steal target '-pid' process token (DARKNARRATOR)</Description>
+		<Argument name='steal_token' type='flag' optional='true'>
+			<Description>Steal token from System.exe (required DARKNARRATOR)</Description>
 		</Argument>
 	</Command>
 	<Command name='patchtool' provider='patchtool.py' dependency='clsp' type='script'>
-		<Description>Patch AMSI/ETW/SYSMON</Description>
+		<Description>Patch AMSI/ETW/CI</Description>
 		<Argument name='pid' type='int' optional='true'>
 			<Description>Target process id</Description>
 		</Argument>
@@ -327,7 +327,7 @@
 			<Description>Use opened handle instead of pid (ignores pid)</Description>
 		</Argument>
 		<Argument name='protection' type='string'>
-			<Description>Protection to patch (AMSI/ETW/SYSMON, * for all)</Description>
+			<Description>Protection to patch (AMSI/ETW/CI)</Description>
 		</Argument>
 		<Argument name='action' type='string'>
 			<Description>Action (patch/restore)</Description>

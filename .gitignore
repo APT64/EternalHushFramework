@@ -770,5 +770,6 @@ xml_configs/
 .idea/
 
 !liquidlnf.jar
+!superfetch_h.h
 *.zip
 # End of https://www.toptal.com/developers/gitignore/api/cmake,ninja,python,visualstudio,intellij,java,maven,git

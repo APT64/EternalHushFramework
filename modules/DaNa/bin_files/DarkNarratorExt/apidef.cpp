@@ -158,3 +158,19 @@ NTSTATUS LeakKernelOb(PMODULE_CONTEXT ctx, CommandParser* parser, ResponseBuilde
 	return status;
 	
 }
+NTSTATUS LeakModuleAddr(PMODULE_CONTEXT ctx, CommandParser* parser, ResponseBuilder* builder) {
+	NTSTATUS status = ERROR_SUCCESS;
+	pCtx = ctx;
+	std::string modname = parser->get_strarg();
+	LONGLONG ob_address = 0;
+
+	if (g_layer) {
+		status = g_layer->LeakModuleBase(modname, (PVOID64*)&ob_address);
+		if (NT_SUCCESS(status)) {
+			builder->add_long(ob_address);
+		}
+	}
+	else status = ERROR_INTERNAL_ERROR;
+	return status;
+	
+}

@@ -10,4 +10,5 @@ NTSTATUS WritePhysMem(PMODULE_CONTEXT pCtx, CommandParser* parser, ResponseBuild
 NTSTATUS ReadVirtMem(PMODULE_CONTEXT pCtx, CommandParser* parser, ResponseBuilder* builder);
 NTSTATUS WriteVirtMem(PMODULE_CONTEXT pCtx, CommandParser* parser, ResponseBuilder* builder);
 NTSTATUS LeakKernelOb(PMODULE_CONTEXT pCtx, CommandParser* parser, ResponseBuilder* builder);
+NTSTATUS LeakModuleAddr(PMODULE_CONTEXT pCtx, CommandParser* parser, ResponseBuilder* builder);
 

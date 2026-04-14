@@ -339,6 +339,7 @@ typedef enum _SYSTEM_INFORMATION_CLASS {
     SystemTimeOfDayInformation = 3,
     SystemProcessInformation = 5,
     SystemProcessorPerformanceInformation = 8,
+    SystemModuleInformation = 11,
     SystemInterruptInformation = 23,
     SystemExceptionInformation = 33,
     SystemRegistryQuotaInformation = 37,
@@ -364,3 +365,23 @@ typedef struct _SYSTEM_HANDLE_INFORMATION_EX
     ULONG_PTR Reserved;
     SYSTEM_HANDLE Handles[1];
 } SYSTEM_HANDLE_INFORMATION_EX, * PSYSTEM_HANDLE_INFORMATION_EX;
+typedef struct _SYSTEM_MODULE {
+    ULONG                Reserved1;
+    ULONG                Reserved2;
+#ifdef _WIN64
+    ULONG				Reserved3;
+#endif
+    PVOID                ImageBaseAddress;
+    ULONG                ImageSize;
+    ULONG                Flags;
+    WORD                 Id;
+    WORD                 Rank;
+    WORD                 w018;
+    WORD                 NameOffset;
+    CHAR                 Name[255];
+}SYSTEM_MODULE, * PSYSTEM_MODULE;
+
+typedef struct _SYSTEM_MODULE_INFORMATION {
+    ULONG                ModulesCount;
+    SYSTEM_MODULE        Modules[1];
+} SYSTEM_MODULE_INFORMATION, * PSYSTEM_MODULE_INFORMATION;

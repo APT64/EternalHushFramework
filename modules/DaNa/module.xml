@@ -18,5 +18,20 @@
         <Argument name='destroy_layer' type='flag' optional='true'>
 			<Description>Destroy current layer</Description>
 		</Argument>
-	</Command>	
+	</Command>
+	<Command name='driverload' provider='driverload.py' dependency='clsp' type='script'>
+		<Description>Load kernel driver</Description>
+		<Argument name='bin' type='string'>
+			<Description>Path to local binary file</Description>
+		</Argument>
+		<Argument name='name' type='string'>
+			<Description>Service name</Description>
+		</Argument>
+	</Command>
+	<Command name='driverunload' provider='driverunload.py' dependency='clsp' type='script'>
+		<Description>Unload kernel driver</Description>
+		<Argument name='name' type='string'>
+			<Description>Service name</Description>
+		</Argument>
+	</Command>
 </Module>

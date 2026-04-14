@@ -14,3 +14,6 @@ def write_mem_handler(parser):
 
 def leak_kernel_ob_handler(parser):
     return parser.get_long()
+
+def leak_module_addr_handler(parser):
+    return parser.get_long()

@@ -10,6 +10,7 @@ SELECT_LAYER_UID =0xa5da5683c62f27ff
 FINALIZE_LAYER_UID =0xe35496b5e2780cdf
 
 LEAK_OBJECT_UID=0x121551f6baffd46b
+LEAK_MODULE_UID= 0x12ea934ccc1d4060
 
 THROTTLESTOP_LAYER =0x2b4e9984d442a315
 
@@ -86,3 +87,27 @@ DANA_LEAK_KERNEL_OB = {
     
     'response_handler': ext_handlers.leak_kernel_ob_handler
 }
+DANA_LEAK_MODULE_ADDR = {
+    'ext_uid' : DARKNARRATOR_UID,
+    'api_uid' : LEAK_MODULE_UID,
+    'api_args': [
+        eh.STRING
+    ],
+    
+    'response_handler': ext_handlers.leak_module_addr_handler
+}
+
+
+
+def DANA_IsReady():
+    if eh.ui.GetEnv("DANA_REGISTERED") == 'true' and int(eh.ui.GetEnv("DANA_LAYER_UID")) > 16:
+        return True
+    return False
+
+def DANA_IsInstalled():
+    if eh.ui.GetEnv("DANA_REGISTERED") == 'true':
+        return True
+    return False
+
+def DANA_GetLayer():
+    return int(eh.ui.GetEnv("DANA_LAYER_UID"))
